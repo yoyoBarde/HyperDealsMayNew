@@ -18,7 +18,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".NavigationOptionsActivity.UserPreferredTime"></activity>
+        <activity android:name=".NavigationOptionsActivity.UserHistory"></activity>
+        <activity android:name=".NavigationOptionsActivity.UserPreferredTime" />
         <activity android:name=".NavigationOptionsActivity.UserInterest" />
         <activity android:name=".BusinessActivities.Business_Stores" />
         <activity android:name=".BusinessActivities.AddStore" />
@@ -75,14 +76,13 @@
         <service android:name=".LocationService" />
 
         <activity android:name=".InitializeCategory" />
-
         <activity
             android:name=".Admin.Admin"
             android:label="Admin"
             android:theme="@style/AppTheme" />
         <activity android:name=".Admin.AdminAddIncentivesInputs" />
         <activity android:name=".Admin.RewardsUser" />
-        <activity android:name=".Admin.AddCategoryInput"></activity>
+        <activity android:name=".Admin.AddCategoryInput" />
     </application>
 
 </manifest>

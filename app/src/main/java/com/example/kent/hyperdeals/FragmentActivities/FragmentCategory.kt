@@ -35,6 +35,7 @@ import com.example.kent.hyperdeals.Home.HomeAdapter
 import com.example.kent.hyperdeals.Home.PreferedPromoAdapter
 import com.example.kent.hyperdeals.Model.*
 import com.example.kent.hyperdeals.MyAdapters.HottestPromoAdapter
+import com.example.kent.hyperdeals.NavigationOptionsActivity.UserHistory
 import com.firebase.geofire.GeoFire
 import com.firebase.geofire.GeoLocation
 import com.firebase.geofire.GeoQueryEventListener
@@ -45,6 +46,7 @@ import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreSettings
+import kotlinx.android.synthetic.main.dialogbox.view.*
 import kotlinx.android.synthetic.main.fragmentcategory.*
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.support.v4.toast
@@ -92,6 +94,8 @@ class FragmentCategory: Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+
+        promolist = ArrayList<PromoModel>()
         val settings = FirebaseFirestoreSettings.Builder()
                 .setPersistenceEnabled(true)
                 .build()
@@ -193,7 +197,13 @@ fun getPromos(){
                         }
                     }
                 }
-                getPreferenceMatched()
+                try {
+                    getPreferenceMatched()
+
+                }
+                catch (e:Exception){
+
+                }
 
 
 
@@ -231,7 +241,6 @@ fun setHomeAdapter(){
                 userLatLng = LatLng(location.latitude,location.longitude)
                 Log.e(TAG,"Manufcaturer ${android.os.Build.MANUFACTURER}")
                     detectGeofence(GeoLocation(location.latitude, location.longitude))
-
                 try {
                     for(i in 0 until  promolist.size){
 
@@ -340,7 +349,7 @@ return TAG
     fun detectGeofence(userGeo:GeoLocation) {
         Log.e(TAG,"detectGeofence")
 
-        val geoQuery = geoFire.queryAtLocation(userGeo, .5)
+        val geoQuery = geoFire.queryAtLocation(userGeo, 500.0)
         geoQuery.addGeoQueryEventListener(object : GeoQueryEventListener {
             override fun onKeyEntered(key: String, location: GeoLocation) {
         Log.e(TAG,"atay na")
@@ -369,7 +378,15 @@ return TAG
 
                                                 } else {
                                                     Log.e(TAG, " else notification pushed ${promolist[i].promoStore}")
-                                                    displayNotification(key, notifIDCounter, promolist[i])
+                                                    var convertedDistance = promolist[i].distance.toDouble() * 1000
+                                                    Log.e(TAG,"Condition convertedDisntance - ${convertedDistance} and ${promolist[i].areaSqm.toDouble()}")
+                                                    if(convertedDistance<=promolist[i].areaSqm.toDouble()) {
+                                                        displayNotification(key, notifIDCounter, promolist[i])
+
+                                                        var myUserHistory = userHistory(promolist[i].promoStore,currentDate.toString())
+                                                        database.collection("UserHistory").document(LoginActivity.userUIDS).collection("Promo").document(promolist[i].promoStore).set(myUserHistory)
+                                                        Log.e(TAG+"yoyo","${promolist[i].promoname}  is notified yeah")
+                                                    }
 
                                                 }
                                             }
@@ -420,7 +437,6 @@ return TAG
     }
     fun CalculationByDistance(StartP: LatLng, EndP: LatLng): Double {
 
-
         val Radius = 6371// radius of earth in Km
         val lat1 = StartP.latitude
         val lat2 = EndP.latitude
@@ -440,7 +456,6 @@ return TAG
         val meterInDec = Integer.valueOf(newFormat.format(meter))
         Log.i("Radius Value", "" + valueResult + "   KM  " + kmInDec
                 + " Meter   " + meterInDec)
-
         return Radius * c
     }
     fun displayNotification(Channel: String, notificationID: Int,myPromoModel:PromoModel) {
@@ -503,9 +518,13 @@ return TAG
         channel.description = description
         val notificationManager = activity!!.getSystemService<NotificationManager>(NotificationManager::class.java)
         notificationManager!!.createNotificationChannel(channel)
-
     }
     fun getHottestPromo(){
+        var length = promolist.size
+        if(promolist.size>=5)
+        {
+            length = 5
+        }
         for( i in 0 until promolist.size){
 
             promolist[i].hottestPoints = (promolist[i].interested * 8) + (promolist[i].viewed * 5)
@@ -514,7 +533,7 @@ return TAG
 
         var hottestList = ArrayList<PromoModel>()
         var sortTedPromo = promolist.sortedWith(compareByDescending {it.hottestPoints})
-        for(i in 0 until 5){
+        for(i in 0 until length){
             Log.e(TAG,"${promolist[i].promoStore}  pointsSorted ${promolist[i].hottestPoints}")
 
             hottestList.add(sortTedPromo[i])
@@ -531,9 +550,6 @@ return TAG
    fun  getPreferenceNoMached(){
        var preferedPromoList = ArrayList<PromoModel>()
         for(i in 0 until promolist.size){
-
-
-
             for(j in 0 until promolist[i].subcategories.size){
                 promolist[i].subcategories[j]
                 for(k in 0 until userCategories.size){
@@ -543,11 +559,7 @@ return TAG
                                 promolist[i].preferenceMatched = promolist[i].preferenceMatched + 1
                             }
                         }
-
-
                     }
-
-
                 }
 
 
@@ -564,7 +576,10 @@ return TAG
 Log.e(TAG,"Mana jud")
        setPreferencePromoAdapter(preferedPromoList)
        getLocation()
-       getHottestPromo()
+
+
+           getHottestPromo()
+
 
     }
     fun getUserPreferredTime(){
@@ -591,7 +606,6 @@ Log.e(TAG,"Mana jud")
 
                doAsync {
                    database.collection("PromoIntrested").document(promolist[i].promoStore).get().addOnSuccessListener { document ->
-
                        if (document.exists()) {
 
                            var promoLikeCountParce = document.toObject(promoLikesCountParce::class.java)

@@ -132,7 +132,8 @@ class DashboardActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
 
             }
             R.id.nav_gallery -> {
-
+                val intent = Intent (this, UserHistory::class.java)
+                startActivity(intent)
             }
             R.id.nav_interest -> {
                 val intent = Intent (this, UserInterest::class.java)

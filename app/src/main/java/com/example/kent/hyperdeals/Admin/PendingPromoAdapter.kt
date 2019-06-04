@@ -83,6 +83,7 @@ class PendingPromoAdapter(val context:Context , private val promolist : ArrayLis
         val inflater = context.layoutInflater
         val dialogView = inflater.inflate(R.layout.model_aprrove_promo, null)
 
+        val tvArea = dialogView.findViewById(R.id.tvArea) as TextView
         val aprrove = dialogView.findViewById(R.id.btnAprrove) as Button
         val discard = dialogView.findViewById(R.id.btnDiscard) as Button
         val promoName = dialogView.findViewById(R.id.tvPromoname) as TextView
@@ -91,7 +92,13 @@ class PendingPromoAdapter(val context:Context , private val promolist : ArrayLis
         val promoPic = dialogView.findViewById(R.id.ivPromoPic) as ImageView
 
 
-
+        tvArea.text = myPromo.areaSqm.toString()
+        promoName.text = myPromo.promoname
+        storeName.text = myPromo.promoStore
+        Picasso.get()
+                .load(myPromo.promoImageLink)
+                .placeholder(R.drawable.hyperdealslogofinal)
+                .into(promoPic)
         dialogBuilder.setView(dialogView)
 
 

@@ -26,7 +26,7 @@ var database = FirebaseFirestore.getInstance()
 
     companion object {
         lateinit var globalUserBusinessman: UserBusinessmanvarParce
-        lateinit var userBusinessManUsername:String
+         var userBusinessManUsername:String = "juriusu25@gmail.com"
 
     }
     override fun onCreate(savedInstanceState: Bundle?) {

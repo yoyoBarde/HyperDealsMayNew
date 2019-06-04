@@ -502,7 +502,7 @@ var myArrayStringSub = myStoreCategories
 
                     }
                     else {
-                        noneFields()
+
                     }
 
                 }

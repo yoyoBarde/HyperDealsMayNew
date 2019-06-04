@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.*
+import com.example.kent.hyperdeals.Admin.Admin
 import com.example.kent.hyperdeals.FragmentsBusiness.Business_PromoProfile
 import com.example.kent.hyperdeals.NavigationBar.DashboardActivity
 import com.google.android.gms.tasks.OnCompleteListener
@@ -38,11 +39,21 @@ loginPassword.setText("febuary25")
 
         login.setOnClickListener{
 
+
             val loginEmail = findViewById<View>(R.id.loginEmail) as EditText
             val loginPassword = findViewById<View>(R.id.loginPassword) as EditText
             val loginButton = findViewById<View>(R.id.loginButton) as Button
             val loginForgotPassword = findViewById<View>(R.id.loginForgotPassword) as TextView
             val loginProgressBar = findViewById<View>(R.id.loginProgressBar) as ProgressBar
+
+
+
+            if(loginEmail.text.toString()=="admin" && loginPassword.text.toString() == "admin"){
+                val intent = Intent(this, Admin::class.java)
+                startActivity(intent)
+
+
+            }
 
             var LoginEmail = loginEmail.text.toString()
             var LoginPassword = loginPassword.text.toString()

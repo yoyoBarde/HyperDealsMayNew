@@ -55,17 +55,9 @@ class FragmentRelatedPromos : Fragment() {
             localList[i].relatedPromoMatched = 0
             for(j in 0 until localList[i].subcategories.size){
                 for(k in 0 until currentPromo.subcategories.size){
-
                     if(localList[i].subcategories[j]==currentPromo.subcategories[k]){
                         localList[i].relatedPromoMatched += 1
-
-                    }
-
-
-                }
-
-
-            }
+                    } } }
             if(currentPromo.promoStore==localList[i].promoStore)
             {
             }

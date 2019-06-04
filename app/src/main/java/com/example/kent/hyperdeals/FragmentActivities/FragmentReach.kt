@@ -84,34 +84,34 @@ class FragmentReach : Fragment() {
         recyclerViewReach.addOnItemTouchListener(RecyclerTouchListener(this.context!!.applicationContext, object : RecyclerTouchListener.ClickListener {
             @SuppressLint("SetTextI18n")
             override fun onClick(view: View, position: Int) {
-
-                val promos = promolist[position]
-
-                myDialogBusiness = Dialog(activity)
-                myDialogBusiness?.setContentView(R.layout.dialogbox_businessman)
-
-
-                Picasso.get()
-                        .load(promos.promoImageLink)
-                        .placeholder(R.mipmap.ic_launcher)
-                        .into(myDialogBusiness!!.reachPromoPicture)
-
-
-                myDialogBusiness!!.specificPromoContainer.setOnClickListener {
-                    PromoListAdapter.promoProfile = promos
-                    startActivity(Intent(activity!!,Business_PromoProfile::class.java))
-
-                }
-                myDialogBusiness!!.tvPromoNameBusinessman.text = promolist[position].promoname
-                myDialogBusiness!!.tvPromoLocationBusinessman.text = promolist[position].promoPlace
-                myDialogBusiness!!.tvSent.text = promos.sent.toString() + " people sent"
-                myDialogBusiness!!.tvDismssed.text = promos.dismissed.toString() + " people dismissed"
-                myDialogBusiness!!.tvViewed.text = promos.viewed.toString() + " people viewed"
-                myDialogBusiness!!.tvInterested.text = promos.interested.toString()+ " people are interested"
-
-                myDialogBusiness?.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-                myDialogBusiness?.window?.setGravity(Gravity.CENTER)
-                myDialogBusiness?.show()
+//
+//                val promos = promolist[position]
+//
+//                myDialogBusiness = Dialog(activity)
+//                myDialogBusiness?.setContentView(R.layout.dialogbox_businessman)
+//
+//
+//                Picasso.get()
+//                        .load(promos.promoImageLink)
+//                        .placeholder(R.mipmap.ic_launcher)
+//                        .into(myDialogBusiness!!.reachPromoPicture)
+//
+//
+//                myDialogBusiness!!.specificPromoContainer.setOnClickListener {
+//                    PromoListAdapter.promoProfile = promos
+//                    startActivity(Intent(activity!!,Business_PromoProfile::class.java))
+//
+//                }
+//                myDialogBusiness!!.tvPromoNameBusinessman.text = promolist[position].promoname
+//                myDialogBusiness!!.tvPromoLocationBusinessman.text = promolist[position].promoPlace
+//                myDialogBusiness!!.tvSent.text = promos.sent.toString() + " people sent"
+//                myDialogBusiness!!.tvDismssed.text = promos.dismissed.toString() + " people dismissed"
+//                myDialogBusiness!!.tvViewed.text = promos.viewed.toString() + " people viewed"
+//                myDialogBusiness!!.tvInterested.text = promos.interested.toString()+ " people are interested"
+//
+//                myDialogBusiness?.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+//                myDialogBusiness?.window?.setGravity(Gravity.CENTER)
+//                myDialogBusiness?.show()
 
             }
         }))

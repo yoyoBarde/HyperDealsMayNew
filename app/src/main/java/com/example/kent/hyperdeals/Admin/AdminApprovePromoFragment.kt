@@ -48,7 +48,6 @@ class AdminApprovePromoFragment : Fragment() {
 
     fun getPromoTobeAprroved(){
      var promolist = ArrayList<PromoModel>()
-
         val layoutManager = LinearLayoutManager(context)
         recyclerPendingPromo.layoutManager = layoutManager
         recyclerPendingPromo.itemAnimator = DefaultItemAnimator()

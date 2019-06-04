@@ -408,6 +408,36 @@ data class userPreferredTime(var startTimeHour:Int,
      }
 
  }
+data class userHistory(var promoName:String,var date:String)
+class userHistoryParce():Parcelable{
+
+    var promoName = " "
+    var date = " "
+
+    constructor(parcel: Parcel) : this() {
+        promoName = parcel.readString()
+        date = parcel.readString()
+    }
+
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeString(promoName)
+        parcel.writeString(date)
+    }
+
+    override fun describeContents(): Int {
+        return 0
+    }
+
+    companion object CREATOR : Parcelable.Creator<userHistoryParce> {
+        override fun createFromParcel(parcel: Parcel): userHistoryParce {
+            return userHistoryParce(parcel)
+        }
+
+        override fun newArray(size: Int): Array<userHistoryParce?> {
+            return arrayOfNulls(size)
+        }
+    }
+}
 
 
 

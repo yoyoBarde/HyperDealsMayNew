@@ -15,9 +15,7 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import com.example.kent.hyperdeals.LoginActivity
-import com.example.kent.hyperdeals.Model.CategoryModel
-import com.example.kent.hyperdeals.Model.CategoryParse
-import com.example.kent.hyperdeals.Model.SubcategoryModelx
+import com.example.kent.hyperdeals.Model.*
 import com.example.kent.hyperdeals.NavigationOptionsActivity.UserPreference
 import com.example.kent.hyperdeals.R
 import com.google.firebase.firestore.FirebaseFirestore
@@ -29,8 +27,10 @@ import org.jetbrains.anko.uiThread
 
 
 class PreferenceChangeAdapter (var context: Context, var categoryList : ArrayList<CategoryParse>) : RecyclerView.Adapter<PreferenceChangeAdapter.ViewHolder>(){
-var contextet = this
-    var myList = categoryList
+    companion object{
+        var categoryList1 = ArrayList<CategoryParse>()
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int):
             ViewHolder = ViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.activity_model_preferences,parent,false))
 
@@ -45,6 +45,7 @@ var contextet = this
                 .placeholder(R.drawable.hyperdealslogofinal)
                 .into(holder.profile_pic)
         holder.profile_pic.setOnClickListener {
+            categoryList1=categoryList
 
             showDialog(myCategory,position)
         }
@@ -78,7 +79,6 @@ var contextet = this
 
 
     inner class ViewHolder(view: View): RecyclerView.ViewHolder(view){
-
         var title = view.tv_categoryName
         var no_selected = view.tv_no_selected
         var profile_pic = view.profile_image
@@ -125,6 +125,10 @@ var contextet = this
         }
 
         myBtnSet.setOnClickListener {
+
+            categoryList=categoryList1
+            this.notifyDataSetChanged()
+
             var tempSubcategoryModel = ArrayList<SubcategoryModelx>()
             for(i in 0 until  UserPreference.categoryList[myPosition].Subcategories.size){
               var tempSubmodel =   SubcategoryModelx(UserPreference.categoryList[myPosition].Subcategories[i].SubcategoryName,UserPreference.categoryList[myPosition].Subcategories[i].Selected)

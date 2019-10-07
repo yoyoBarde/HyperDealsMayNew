@@ -27,14 +27,10 @@
                 android:id="@+id/imageView7"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
-                android:layout_marginStart="8dp"
-                android:layout_marginLeft="8dp"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="8dp"
+                android:layout_marginTop="580dp"
                 android:src="@mipmap/ic_back_arrow"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toTopOf="parent"
+                tools:layout_editor_absoluteX="55dp" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -55,8 +51,8 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:paddingHorizontal="20dp"
-            >
-
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
 
 
             <ImageView
@@ -74,46 +70,46 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/toolbar1"
                 app:srcCompat="@drawable/ic_image_black_24dp" />
+
             <LinearLayout
                 android:id="@+id/addPromoStore"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
                 android:layout_marginStart="8dp"
                 android:layout_marginLeft="8dp"
                 android:layout_marginTop="8dp"
                 android:layout_marginEnd="8dp"
                 android:layout_marginRight="8dp"
+                android:orientation="vertical"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/addPromoImage"
-                >
+                app:layout_constraintTop_toBottomOf="@+id/addPromoImage">
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Select Store"
-                    android:textColor="@color/black"
-                    />
+                    android:textColor="@color/black" />
+
                 <Spinner
 
-                    android:spinnerMode="dropdown"
                     android:id="@+id/mySpinner"
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
-                    />
+                    android:spinnerMode="dropdown" />
 
                 <EditText
-                    android:visibility="gone"
                     android:id="@+id/et_storeName"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:hint="Enter Store Name"
-                    />
+                    android:visibility="gone" />
             </LinearLayout>
 
 
             <EditText
+                android:visibility="gone"
                 android:id="@+id/addPromoContact"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -134,11 +130,11 @@
                 android:id="@+id/addPromoDescription"
                 android:layout_width="0dp"
                 android:layout_height="53dp"
-                android:layout_marginEnd="8dp"
-                android:layout_marginLeft="8dp"
-                android:layout_marginRight="8dp"
                 android:layout_marginStart="8dp"
+                android:layout_marginLeft="8dp"
                 android:layout_marginTop="8dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginRight="8dp"
                 android:ems="10"
                 android:hint="Enter Promo Description"
                 android:inputType="textPersonName"
@@ -152,11 +148,11 @@
                 android:id="@+id/addPromoPlace"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:layout_marginLeft="8dp"
-                android:layout_marginRight="8dp"
                 android:layout_marginStart="8dp"
+                android:layout_marginLeft="8dp"
                 android:layout_marginTop="60dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginRight="8dp"
                 android:ems="10"
                 android:hint="Promo Latlng"
                 android:inputType="textPersonName"
@@ -184,17 +180,16 @@
                 app:layout_constraintTop_toBottomOf="@+id/addPromoContact" />
 
 
-
             <fragment
                 android:id="@+id/place_autocomplete_fragment"
                 android:name="com.google.android.gms.location.places.ui.PlaceAutocompleteFragment"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:layout_marginLeft="8dp"
-                android:layout_marginRight="8dp"
                 android:layout_marginStart="8dp"
+                android:layout_marginLeft="8dp"
                 android:layout_marginTop="8dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginRight="8dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintStart_toStartOf="parent"
@@ -238,21 +233,22 @@
             <ProgressBar
                 android:id="@+id/addPromoProgressBar"
                 android:layout_width="wrap_content"
-                android:visibility="invisible"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:layout_marginEnd="8dp"
-                android:layout_marginLeft="8dp"
-                android:layout_marginRight="8dp"
                 android:layout_marginStart="8dp"
+                android:layout_marginLeft="8dp"
                 android:layout_marginTop="8dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginRight="8dp"
+                android:layout_marginBottom="8dp"
+                android:visibility="invisible"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.092"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.879" />
 
             <AutoCompleteTextView
-                android:visibility="gone"
                 android:id="@+id/subsubTag"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
@@ -262,58 +258,59 @@
                 android:layout_marginEnd="8dp"
                 android:layout_marginRight="8dp"
                 android:hint="Add Tag"
+                android:visibility="gone"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/addPromoLocation" />
 
             <EditText
-                android:visibility="gone"
                 android:id="@+id/etstartdate"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:layout_marginLeft="8dp"
-                android:layout_marginRight="8dp"
                 android:layout_marginStart="8dp"
+                android:layout_marginLeft="8dp"
                 android:layout_marginTop="8dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginRight="8dp"
                 android:ems="10"
                 android:hint="Start date"
                 android:inputType="date"
+                android:visibility="gone"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/addPromoPlace" />
 
             <EditText
-                android:visibility="gone"
                 android:id="@+id/etenddate"
                 android:layout_width="0dp"
                 android:layout_height="43dp"
-                android:layout_marginEnd="8dp"
-                android:layout_marginLeft="8dp"
-                android:layout_marginRight="8dp"
                 android:layout_marginStart="8dp"
+                android:layout_marginLeft="8dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginRight="8dp"
                 android:ems="10"
                 android:hint="End date"
                 android:inputType="date"
+                android:visibility="gone"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/addPromoImageLink" />
 
             <TextView
-                android:visibility="gone"
                 android:id="@+id/tvrate"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:layout_marginLeft="8dp"
-                android:layout_marginRight="8dp"
                 android:layout_marginStart="8dp"
+                android:layout_marginLeft="8dp"
                 android:layout_marginTop="8dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginRight="8dp"
                 android:text="P250"
-                android:textStyle="bold"
                 android:textSize="20sp"
+                android:textStyle="bold"
+                android:visibility="gone"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/etenddate" />
@@ -455,7 +452,6 @@
             </LinearLayout>
 
 
-
             <LinearLayout
 
                 android:id="@+id/LinearCategory"
@@ -464,21 +460,129 @@
                 android:orientation="vertical"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/LienarHeadofallhead"
-                >
+                app:layout_constraintTop_toBottomOf="@+id/LienarHeadofallhead">
+
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:background="@color/colorPrimaryDark"
+                    android:background="@color/colorPrimaryDark" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Target"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal">
+
+
+    <CheckBox
+        android:id="@+id/businessmancheckboxyoung"
+        android:layout_width="match_parent"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:text="Kids"
+        android:checked="true"
+        />
+
+    <CheckBox
+        android:id="@+id/businessmancheckboxteenager"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Teenager"
+        android:checked="true"/>
+
+    <CheckBox
+        android:id="@+id/businessmancheckboxadult"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Adult"
+        android:checked="true"/>
+
+
+
+</LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Gender"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
                     />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <CheckBox
+                        android:id="@+id/businessmancheckboxmale"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Male"
+                        android:checked="true"
+                        />
+
+                    <CheckBox
+                        android:id="@+id/businessmancheckboxfemale"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Female"
+                        android:checked="true"
+                        />
+
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Status"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    />
+
+         <LinearLayout
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content">
+
+
+             <CheckBox
+                 android:id="@+id/businessmancheckboxsingle"
+                 android:layout_width="match_parent"
+                 android:layout_height="wrap_content"
+                 android:layout_weight="1"
+                 android:text="Single"
+                 android:checked="true"/>
+
+             <CheckBox
+                 android:id="@+id/businessmancheckboxinarelationship"
+                 android:layout_width="match_parent"
+                 android:layout_height="wrap_content"
+                 android:layout_weight="1"
+                 android:text="In a relationship"
+                 android:checked="true"/>
+
+
+
+
+         </LinearLayout>
+
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Categories"
                     android:textSize="20sp"
-                    android:textStyle="bold"
-                    />
+                    android:textStyle="bold" />
+
+
                 <android.support.constraint.ConstraintLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
@@ -493,6 +597,7 @@
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent" />
 
+
                     <Button
                         android:id="@+id/btn_add_categoru"
                         android:layout_width="wrap_content"
@@ -501,7 +606,6 @@
                         android:layout_marginEnd="8dp"
                         android:layout_marginRight="8dp"
                         android:layout_marginBottom="8dp"
-                        android:visibility="gone"
                         android:background="@drawable/gradientgreenfinal"
                         android:text="Add"
                         android:textColor="@color/white"
@@ -513,25 +617,23 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    >
+                    android:orientation="horizontal">
+
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Area:"
-                        android:textColor="@color/black"
-                        />
+                        android:textColor="@color/black" />
+
                     <EditText
-                        android:inputType="numberDecimal"
                         android:layout_width="wrap_content"
                         android:layout_height="50dp"
                         android:hint="approximate sqm"
-                        />
+                        android:inputType="numberDecimal" />
 
 
                 </LinearLayout>
             </LinearLayout>
-
 
 
         </android.support.constraint.ConstraintLayout>

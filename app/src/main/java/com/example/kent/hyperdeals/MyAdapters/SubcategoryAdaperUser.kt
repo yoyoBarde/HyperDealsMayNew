@@ -39,7 +39,6 @@ class SubcategoryAdaperUser (var context: Context, var subcategoryList : ArrayLi
             print(e)
         }
 
-
         if(mysubCategory.Selected)
         {
             holder.btn_subcat.setBackgroundResource(R.drawable.subcategory_shape_selected)
@@ -51,6 +50,8 @@ class SubcategoryAdaperUser (var context: Context, var subcategoryList : ArrayLi
             if(subcategoryList[position].Selected){
                 subcategoryList[position].Selected = false
                 UserPreference.categoryList[myPosition].Subcategories[position].Selected = false
+                 PreferenceChangeAdapter.categoryList1[myPosition].Subcategories[position].Selected = false
+
                 holder.btn_subcat.setBackgroundResource(R.drawable.subcategory_shape)
                 holder.btn_subcat.setTextColor(context.resources.getColor(R.color.colorPrimaryDark))
 
@@ -59,6 +60,8 @@ class SubcategoryAdaperUser (var context: Context, var subcategoryList : ArrayLi
             else{
                 subcategoryList[position].Selected = true
                 UserPreference.categoryList[myPosition].Subcategories[position].Selected = true
+                PreferenceChangeAdapter.categoryList1[myPosition].Subcategories[position].Selected = true
+
                 holder.btn_subcat.setBackgroundResource(R.drawable.subcategory_shape_selected)
                 holder.btn_subcat.setTextColor(context.resources.getColor(R.color.white))
 

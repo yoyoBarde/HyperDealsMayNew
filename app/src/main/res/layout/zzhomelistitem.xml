@@ -52,6 +52,7 @@
         app:layout_constraintTop_toBottomOf="@+id/tv_distance" />
 
     <TextView
+        android:lines="1"
         android:id="@+id/homePromoName"
         android:layout_width="0dp"
         android:layout_height="47dp"

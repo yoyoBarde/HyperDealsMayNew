@@ -405,7 +405,7 @@ public class FragmentProMap extends Fragment implements OnMapReadyCallback,
                             if (task.isSuccessful()) {
                                 for (DocumentSnapshot document : task.getResult()) {
                                     Boolean aprroved = document.getBoolean("approved");
-                                    if(aprroved) {
+                                    if(!aprroved) {
                                         String Url = document.getString("promoImageLink");
                                         GetImageFromURL2 myImageUrl = new GetImageFromURL2();
 

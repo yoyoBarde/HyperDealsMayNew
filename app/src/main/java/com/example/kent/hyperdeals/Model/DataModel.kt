@@ -5,12 +5,15 @@ import android.os.Parcelable
 import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.firestore.GeoPoint
 
-class DataModel {
+
+interface myInterfacesUpdateSubcategoryCount {
+    fun saveSubcategoryUpdate( )
+
+
 }
-
-
  interface myInterfaces{
     fun saveCategoriesBusiness( myCategoryList:ArrayList<CategoryParse>)
+
 }
 
 
@@ -297,6 +300,29 @@ data class UserBusinessman(var firstname:String,
      }
  }
 
+data class AgeTarget (
+        var young: Boolean,
+        var teenager: Boolean,
+        var adult: Boolean
+)
+
+data class GenderTarget(
+        var male: Boolean,
+        var female : Boolean
+)
+
+data class StatusTarget(
+        var single: Boolean,
+        var inarelationshop: Boolean
+)
+data class DemoTarget(var promoID:String , var myAgeTarget:AgeTarget, var myGenderTarger: GenderTarget, var myStatusTarget: StatusTarget)
+
+
+
+
+
+
+
 data class StoreModel (
             var storeImage:String,
             var storeName:String,
@@ -309,6 +335,10 @@ data class StoreModel (
             var storeOpenTime:String,
             var storeCloseTime:String,
             var storeBy:String
+
+
+
+
             )
  class storeModelParce():Parcelable{
      var storeImage = " "
@@ -437,6 +467,11 @@ class userHistoryParce():Parcelable{
             return arrayOfNulls(size)
         }
     }
+
+
+
+
+
 }
 
 

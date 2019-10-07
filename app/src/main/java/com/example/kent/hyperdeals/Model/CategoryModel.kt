@@ -29,13 +29,14 @@ class CategoryParse():Parcelable{
     var categoryName = " "
     var CategoryImage = " "
     var Subcategories = arrayListOf<SubcategoryParse>()
-
+    var Categories = ArrayList<String>()
     var isShowing = false
 
     constructor(parcel: Parcel) : this() {
         SelectedAll = parcel.readByte() != 0.toByte()
         categoryName = parcel.readString()
         CategoryImage = parcel.readString()
+
     }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {

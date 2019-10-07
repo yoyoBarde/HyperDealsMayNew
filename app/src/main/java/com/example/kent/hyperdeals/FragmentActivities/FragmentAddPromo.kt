@@ -43,29 +43,8 @@ class FragmentAddPromo : Fragment() {
 
         val database = FirebaseFirestore.getInstance()
 
-        promohomeBusinessman = ArrayList()
-
-        val layoutManager = LinearLayoutManager(context)
-        recyclerViewHomeBusinessman.layoutManager = layoutManager
-        recyclerViewHomeBusinessman.itemAnimator = DefaultItemAnimator()
 
 
-
-        database.collection("HomeBusinessman").get().addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                for (DocumentSnapshot in task.result) {
-                    val upload = DocumentSnapshot.toObject(HomeBusinessmanModel::class.java)
-                    Log.d(TAG, DocumentSnapshot.getId() + " => " + DocumentSnapshot.getData())
-                    promohomeBusinessman.add(upload)
-
-                    mAdapter = PromoHomeBusinessman (mSelected,promohomeBusinessman)
-                    recyclerViewHomeBusinessman.adapter = mAdapter
-
-                }
-
-            } else
-                toast("error")
-        }
 
     }
 

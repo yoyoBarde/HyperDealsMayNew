@@ -22,6 +22,7 @@ import android.support.v4.app.NotificationManagerCompat
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.DefaultItemAnimator
 import android.support.v7.widget.LinearLayoutManager
+import android.support.v7.widget.StaggeredGridLayoutManager
 import android.util.Log
 import android.util.SparseBooleanArray
 import android.view.LayoutInflater
@@ -34,6 +35,7 @@ import com.example.kent.hyperdeals.FragmentsBusiness.Business_PromoProfile
 import com.example.kent.hyperdeals.Home.HomeAdapter
 import com.example.kent.hyperdeals.Home.PreferedPromoAdapter
 import com.example.kent.hyperdeals.Model.*
+import com.example.kent.hyperdeals.MyAdapters.CategoryHomeAdapter
 import com.example.kent.hyperdeals.MyAdapters.HottestPromoAdapter
 import com.example.kent.hyperdeals.NavigationOptionsActivity.UserHistory
 import com.firebase.geofire.GeoFire
@@ -50,6 +52,7 @@ import kotlinx.android.synthetic.main.dialogbox.view.*
 import kotlinx.android.synthetic.main.fragmentcategory.*
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.support.v4.toast
+import org.jetbrains.anko.toast
 import org.jetbrains.anko.uiThread
 import java.lang.Exception
 import java.text.DecimalFormat
@@ -62,16 +65,22 @@ class FragmentCategory: Fragment() {
         lateinit var userLatLng: LatLng
         lateinit var globalPromoList:ArrayList<PromoModel>
          var globalUserPreferredTime:userPreferredTimeParce?=null
+
+        lateinit var promoDistanceSorted: ArrayList<PromoModel>
+        lateinit var promoMatchedSorted: ArrayList<PromoModel>
+        lateinit var categoryHome:CategoryParse
+        var run = 0
+
     }
     var database = FirebaseFirestore.getInstance()
-
+    var locationCount = 0
     var notifIDCounter = 102
-    private var promolist1= ArrayList<PromoModelBusinessman>()
+    private var categoryListAll = ArrayList<CategoryParse>()
+
     private var mAdapter : HomeAdapter? = null
     private var mSelected: SparseBooleanArray = SparseBooleanArray()
     private var locationManager: LocationManager? = null
     private var locationListener: LocationListener? = null
-    private var mFirebaseFirestore = FirebaseFirestore.getInstance()
     private var promolist = ArrayList<PromoModel>()
     private var userCategories = ArrayList<CategoryParse>()
 
@@ -94,15 +103,16 @@ class FragmentCategory: Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        getCategories()
+         promoDistanceSorted =  ArrayList<PromoModel>()
+        promoMatchedSorted = ArrayList<PromoModel>()
+
 
         promolist = ArrayList<PromoModel>()
         val settings = FirebaseFirestoreSettings.Builder()
                 .setPersistenceEnabled(true)
                 .build()
         database.firestoreSettings = settings
-
-
-
         ref = FirebaseDatabase.getInstance().getReference("Geofences")
         geoFire = GeoFire(ref)
         getUserPreferredTime()
@@ -110,6 +120,20 @@ class FragmentCategory: Fragment() {
         val layoutManager = LinearLayoutManager(context)
         my_recycler_view111.layoutManager = layoutManager
         my_recycler_view111.itemAnimator = DefaultItemAnimator()
+        swipe.setOnRefreshListener {
+            promoDistanceSorted =  ArrayList<PromoModel>()
+            promoMatchedSorted = ArrayList<PromoModel>()
+
+            swipe.isRefreshing = true
+            promolist = ArrayList<PromoModel>()
+            globalPromoList = ArrayList<PromoModel>()
+            Log.e(TAG,"promolist size ${promolist.size}")
+            getUserPreferredTime()
+
+
+
+
+        }
   minimize_hottest.setOnClickListener {
       if(minimize_hottes){
           minimize_hottest.setImageResource(R.mipmap.ic_arrow_blue_right)
@@ -166,28 +190,80 @@ class FragmentCategory: Fragment() {
     fun setPreferencePromoAdapter(preferPromoList:ArrayList<PromoModel>){
         Log.e(TAG,"setPreferedPromoAdapter")
         var myAdapter = PreferedPromoAdapter(activity!!,preferPromoList)
+        promoMatchedSorted = preferPromoList
+        swipe.isRefreshing = false
         recyclerview_prefered_promo.layoutManager = LinearLayoutManager(activity!!, LinearLayout.VERTICAL,false)
         recyclerview_prefered_promo.adapter = myAdapter
         minimize_preferred.setImageResource(R.mipmap.ic_arrow_blue_down)
+        if(preferPromoList.size== 0 ){
+            minimize_preferred.setImageResource(R.mipmap.ic_arrow_blue_right)
 
+        }
     }
 
 
+    fun getCategories() {
+        var database = FirebaseFirestore.getInstance()
+        categoryListAll = ArrayList<CategoryParse>()
+        doAsync {
+            database.collection("Categories").get().addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    for (DocumentSnapshot in task.result) {
+                        var uploaded = DocumentSnapshot.toObject(CategoryParse::class.java)
+                        Log.e(TAG, DocumentSnapshot.getId() + " => " + DocumentSnapshot.getData())
+                        database.collection("Categories").document(DocumentSnapshot.id).collection("Subcategories").get().addOnCompleteListener { task ->
+                            if (task.isSuccessful) {
+                                for (DocumentSnapshot in task.result) {
+                                    var upload = DocumentSnapshot.toObject(SubcategoryParse::class.java)
+                                    Log.e(TAG, " Subcategory - " + upload.toString())
+                                    uploaded.Subcategories.add(upload)
+
+
+                                }
+
+
+                            } else
+                                toast("error")
+                        }
+                        categoryListAll.add(uploaded)
+
+                    }
+
+
+
+
+
+
+
+
+                } else
+                    toast("error")
+            }
+
+                   var  CategoryAdapter = CategoryHomeAdapter(activity!!,categoryListAll)
+            var myStagger = StaggeredGridLayoutManager(2, LinearLayoutManager.HORIZONTAL)
+            recyclerCategory.layoutManager = myStagger
+            recyclerCategory.adapter =  CategoryAdapter
+
+        }
+    }
 
 
 fun getPromos(){
+    Log.e(TAG,"getting Promos")
 
     doAsync {
         database.collection("PromoDetails").get().addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 for (DocumentSnapshot in task.result) {
                     var upload = DocumentSnapshot.toObject(PromoModel::class.java)
-                    Log.d(TAG, DocumentSnapshot.getId() + " => " + DocumentSnapshot.getData())
+                    Log.e(TAG, " getPromos "+DocumentSnapshot.getId() + " => " + DocumentSnapshot.getData())
                     var geoPoint = DocumentSnapshot.getGeoPoint("promoGeo")
+                    upload.promoCategories = DocumentSnapshot.getId()
                     upload.promoLocation = LatLng(geoPoint.latitude, geoPoint.longitude)
                     upload.startDateCalendar.set(upload.startDateYear, upload.startDateMonth - 1, upload.startDateDay)
                     upload.endDateCalendar.set(upload.endDateYear, upload.endDateMonth - 1, upload.endDateDay)
-
+                    promolist.add(upload)
 
                     if (currentDate.timeInMillis <= upload.endDateCalendar.timeInMillis)
                     {
@@ -195,6 +271,12 @@ fun getPromos(){
                         if(upload.approved) {
                             promolist.add(upload)
                         }
+                    }
+                    else{
+                        if(upload.approved) {
+                            promolist.add(upload)
+                        }
+
                     }
                 }
                 try {
@@ -220,8 +302,12 @@ fun getPromos(){
 fun setHomeAdapter(){
 
     var sortTedPromo = promolist.sortedWith(compareBy {it.distance})
+
     var finalList = ArrayList<PromoModel>()
     for(i in 0 until sortTedPromo.size){
+        if(i<20) {
+            promoDistanceSorted.add(sortTedPromo[i])
+        }
         if(sortTedPromo[i].distance.toDouble()<10.0){
             finalList.add(sortTedPromo[i])
         }
@@ -233,19 +319,22 @@ fun setHomeAdapter(){
 
 }
     fun getLocation() {
-
-
+        locationCount= 0
+        Log.e(TAG,"getLocation")
         locationManager = activity!!.getSystemService(AppCompatActivity.LOCATION_SERVICE) as LocationManager
         locationListener = object : LocationListener {
             override fun onLocationChanged(location: Location) {
-                userLatLng = LatLng(location.latitude,location.longitude)
-                Log.e(TAG,"Manufcaturer ${android.os.Build.MANUFACTURER}")
-                    detectGeofence(GeoLocation(location.latitude, location.longitude))
+                Log.e(TAG,"Location change")
+                if(locationCount==0){
+                    locationCount += 1
+                userLatLng = LatLng(location.latitude, location.longitude)
+                Log.e(TAG, "Manufcaturer ${android.os.Build.MANUFACTURER}")
+                detectGeofence(GeoLocation(location.latitude, location.longitude))
                 try {
-                    for(i in 0 until  promolist.size){
+                    for (i in 0 until promolist.size) {
 
 
-                        var distanceFormatted = String.format("%.2f",CalculationByDistance(userLatLng,promolist[i].promoLocation))
+                        var distanceFormatted = String.format("%.2f", CalculationByDistance(userLatLng, promolist[i].promoLocation))
                         promolist[i].distance = distanceFormatted
 
 
@@ -254,12 +343,13 @@ fun setHomeAdapter(){
                     runOnUiThread {
 
 
-                    setHomeAdapter()
+                        setHomeAdapter()
                     }
 
                 } catch (e: Exception) {
                     Log.e(TAG, "Exception raised $e")
                 }
+            }
             }
 
             override fun onStatusChanged(provider: String, status: Int, extras: Bundle) {
@@ -352,7 +442,7 @@ return TAG
         val geoQuery = geoFire.queryAtLocation(userGeo, 500.0)
         geoQuery.addGeoQueryEventListener(object : GeoQueryEventListener {
             override fun onKeyEntered(key: String, location: GeoLocation) {
-        Log.e(TAG,"atay na")
+        Log.e(TAG,"atay na OnkeyEntered")
                 if(!notificationList.contains(key)) {
                     notificationList.add(key)
                     Log.e(TAG, key)
@@ -370,6 +460,8 @@ return TAG
 
                                     uiThread {
                                         if(promolist[i].preferenceMatched!=0) {
+                                            Log.e(TAG,"preferceMatch!=0")
+
                                             if (promoOnPreferredTime(promolist[i])) {
                                                 Log.e(TAG,"onPreferredTime")
 
@@ -548,11 +640,17 @@ return TAG
 
     }
    fun  getPreferenceNoMached(){
+       getLocation()
+
+       Log.e(TAG,"getPreferenceNoMatched ${promolist.size}")
        var preferedPromoList = ArrayList<PromoModel>()
         for(i in 0 until promolist.size){
             for(j in 0 until promolist[i].subcategories.size){
+                Log.e(TAG,"PromoList size ${promolist[i].subcategories.size}")
                 promolist[i].subcategories[j]
                 for(k in 0 until userCategories.size){
+                    Log.e(TAG,"UserCategories size ${userCategories.size}")
+
                     for( p in 0 until userCategories[k].Subcategories.size){
                         if(userCategories[k].Subcategories[p].SubcategoryName==promolist[i].subcategories[j]){
                             if(userCategories[k].Subcategories[p].Selected) {
@@ -566,7 +664,7 @@ return TAG
 
             }
 
-            Log.e(TAG,"preference match for ${promolist[i].promoStore} is ${promolist[i].preferenceMatched}")
+            Log.e(TAG,"preference match for ${promolist[i].promoname} is ${promolist[i].preferenceMatched}")
             if(promolist[i].preferenceMatched!=0){
                 preferedPromoList.add(promolist[i])
             }
@@ -574,13 +672,9 @@ return TAG
         }
        globalPromoList = promolist
 Log.e(TAG,"Mana jud")
+
        setPreferencePromoAdapter(preferedPromoList)
-       getLocation()
-
-
            getHottestPromo()
-
-
     }
     fun getUserPreferredTime(){
             database.collection("UserPreferredTime").document(LoginActivity.userUIDS).get().addOnSuccessListener { document ->
@@ -600,7 +694,11 @@ Log.e(TAG,"Mana jud")
 
     }
    fun getPreferenceMatched() {
+
+       Log.e(TAG,"getPreferenceMatched ${promolist.size}")
        var count = 0
+
+
        doAsync {
            for (i in 0 until promolist.size) {
 
@@ -634,7 +732,7 @@ Log.e(TAG,"Mana jud")
                                }
                            }
                }
-    database.collection("PromoCategories").document(promolist[i].promoStore).collection("Subcategories").get().addOnCompleteListener { task ->
+    database.collection("PromoCategories").document(promolist[i].promoCategories).collection("Subcategories").get().addOnCompleteListener { task ->
         if (task.isSuccessful) {
             for (DocumentSnapshot in task.result) {
                 var subcategory = DocumentSnapshot.toObject(promoSubcategoryParce::class.java)

@@ -12,7 +12,6 @@ import java.lang.Exception
 
 
 class SubcategoryAdapterBusiness (var context: Context, var subcategoryList : ArrayList<SubcategoryParse>, var myPosition:Int) : RecyclerView.Adapter<SubcategoryAdapterBusiness.ViewHolder>(){
-    var myList = subcategoryList
 
 
     inner class ViewHolder(view: View): RecyclerView.ViewHolder(view){
@@ -58,6 +57,7 @@ class SubcategoryAdapterBusiness (var context: Context, var subcategoryList : Ar
             else{
                 subcategoryList[position].Selected = true
                 CategoryAdapterBusiness.globalCategoryList[myPosition].Subcategories[position].Selected = true
+//                CategoryAdapterBusiness.globalCategoryList[myPosition].Categories.add( CategoryAdapterBusiness.globalCategoryList[myPosition].categoryName)
 
                 holder.btn_subcat.setBackgroundResource(R.drawable.subcategory_shape_selected)
                 holder.btn_subcat.setTextColor(context.resources.getColor(R.color.white))

@@ -20,7 +20,15 @@ import kotlinx.android.synthetic.main.activity_user_preference.*
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.toast
 
-class UserPreference : AppCompatActivity(), myInterfacesCategories {
+class UserPreference : AppCompatActivity(), myInterfacesCategories,myInterfacesUpdateSubcategoryCount {
+    override fun saveSubcategoryUpdate() {
+        Log.e(TAG,"updated Subcategory")
+        setAdapter()
+
+
+    }
+
+
 
     val database = FirebaseFirestore.getInstance()
     lateinit var myAdapter:PreferenceChangeAdapter
@@ -36,7 +44,7 @@ class UserPreference : AppCompatActivity(), myInterfacesCategories {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_user_preference)
-
+        imageView7.setOnClickListener { finish() }
 
         myContext = applicationContext
         getCategories()
@@ -103,27 +111,6 @@ class UserPreference : AppCompatActivity(), myInterfacesCategories {
     }
 
 
-    //    private fun geoUserPreference() {
-//        val userID = LoginActivity.userUIDS
-//        Log.e(TAG, userID + "asdkmadkmas")
-//        val db = FirebaseFirestore.getInstance()
-//        db.collection("Users").document(userID).collection("Cetegories").get()
-//                .addOnCompleteListener { task ->
-//                    if (task.isSuccessful) {
-//                        for (document in task.result) {
-//                            val subsubCategory = document.getString("subsubcategoryName")
-//                            val clicked = document.getBoolean("checked")
-//                            arraysubsub.add(subsubModel(clicked!!, subsubCategory))
-//                            Log.d(TAG, subsubCategory + clicked.toString())
-//
-//                        }
-//                    } else {
-//                        Log.d(TAG, "Error getting documents: ", task.exception)
-//                    }
-//                }
-//
-//
-//    }
     override fun addCategoriesUser(myCategoryList: ArrayList<CategoryParse>) {
         for(i in 0 until myCategoryList.size){
             if(myCategoryList[i].SelectedAll)

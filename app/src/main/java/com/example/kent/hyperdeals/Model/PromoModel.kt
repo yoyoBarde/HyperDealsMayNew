@@ -10,6 +10,7 @@ import java.util.*
 class PromoModel() : Parcelable {
         var promoimage: String = ""
         var promoname: String = ""
+
         var promodescription: String = ""
         var promoPlace: String = ""
         var promoContactNumber: String = ""
@@ -19,6 +20,7 @@ class PromoModel() : Parcelable {
         var promoImageLink: String = ""
         var promoLocation: LatLng = LatLng(123.213, 12331.23)
 
+        var promoCategories: String = ""
 
         var sent: Int = 0
         var viewed: Int = 0
@@ -50,7 +52,11 @@ class PromoModel() : Parcelable {
         var endDateCalendar =Calendar.getInstance()
         var hottestPoints = 0
 
+        var distancePoints:Double = 0.0
+        var matchedPoints:Double= 0.0
+
         constructor(parcel: Parcel) : this() {
+                promoCategories = parcel.readString()
                 promoimage = parcel.readString()
                 promoname = parcel.readString()
                 promodescription = parcel.readString()
@@ -83,6 +89,8 @@ class PromoModel() : Parcelable {
         }
 
         override fun writeToParcel(parcel: Parcel, flags: Int) {
+
+                parcel.writeString(promoCategories)
                 parcel.writeString(promoimage)
                 parcel.writeString(promoname)
                 parcel.writeString(promodescription)

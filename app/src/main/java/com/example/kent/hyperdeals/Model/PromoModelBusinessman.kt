@@ -4,6 +4,8 @@ import com.google.firebase.firestore.GeoPoint
 
 class   PromoModelBusinessman (
 
+
+
         var promoimage: String,
         var promoStore: String,
         var promoContactNumber: String,
@@ -37,10 +39,12 @@ class   PromoModelBusinessman (
 
 
 
-
         ){
+        var categoryLista=ArrayList<String>()
+
         var areaSqm:Int= 0
         var approved:Boolean = false
         var posterBy:String = " "
+
 
 }

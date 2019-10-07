@@ -39,6 +39,7 @@ import com.example.kent.hyperdeals.MyAdapters.SelectedSubcategoryAdapterBusiness
 import org.jetbrains.anko.doAsync
 import java.text.SimpleDateFormat
 import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 
 
 class AddPromo : AppCompatActivity(),DatePickerDialog.OnDateSetListener,TimePickerDialog.OnTimeSetListener, myInterfaces {
@@ -47,10 +48,13 @@ class AddPromo : AppCompatActivity(),DatePickerDialog.OnDateSetListener,TimePick
     companion object {
         lateinit var recyclerViewSub:RecyclerView   
         var globalCategorylist=ArrayList<CategoryParse>()
+        lateinit var globalCustomSubcategory:ArrayList<String>
+        lateinit var globalCustomCategory:ArrayList<String>
     }
     lateinit var myStoreCategories:ArrayList<String>
     var storeList = ArrayList<StoreModel>()
     lateinit var subcategoryList:ArrayList<String>
+     var categoryLista = ArrayList<String>()
     var globalSubcategoryStringList = ArrayList<String>()
     val database = FirebaseFirestore.getInstance()
     private var mImageLink : UploadTask.TaskSnapshot?=null
@@ -95,9 +99,9 @@ class AddPromo : AppCompatActivity(),DatePickerDialog.OnDateSetListener,TimePick
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         setContentView(R.layout.zaddpromobusinessman)
         getStores2()
+
         newFragment = DialogFragmentAddCategoryBusiness().newInstance()
         getCategories()
         recyclerViewSub = findViewById<RecyclerView>(R.id.Recycler_selectedSubcategory)
@@ -220,7 +224,8 @@ class AddPromo : AppCompatActivity(),DatePickerDialog.OnDateSetListener,TimePick
             Log.e(TAG,"${startDateCalendar.time}")
             var currentCalendar = Calendar.getInstance()
             if(currentCalendar!!.timeInMillis>startDateCalendar!!.timeInMillis){
-                Toast.makeText(this,"Start Date should be further than today",Toast.LENGTH_LONG).show()
+             //   Toast.makeText(this,"Start Date should be further than today",Toast.LENGTH_LONG).show()
+                startDate.text = dateFormat.format(myDate)
 
             }
             else
@@ -300,10 +305,37 @@ class AddPromo : AppCompatActivity(),DatePickerDialog.OnDateSetListener,TimePick
                         addPromoImageLink.setText(image)
 
                         toast("Image Uploaded Successfully")
-                        storeDatatoFirestore()
-                finish()
-                        addPromoProgressBar.visibility = View.INVISIBLE
 
+                        var SangitString = "sangit"
+                        var proceed=true
+                        if(startTime.text.toString().matches("0 0 : 0 0".toRegex())){
+                            SangitString = "Set start time"
+                             proceed=false
+
+                        }
+                        if(endTime.text.toString().matches("0 0 : 0 0".toRegex())){
+                            SangitString = "Set end time"
+                            proceed=false
+
+                        }
+                        if(startDate.text.toString().matches("M-DD-YYYY".toRegex())){
+                            SangitString = "Set start date"
+                            proceed=false
+
+                        }
+                        if(endDate.text.toString().matches("M-DD-YYYY".toRegex())){
+                            SangitString = "Set end date"
+                            proceed=false
+
+                        }
+                        if(proceed) {
+                            storeDatatoFirestore()
+                            finish()
+                            addPromoProgressBar.visibility = View.INVISIBLE
+                        }
+                        else{
+                            toast(SangitString)
+                        }
                     }
                     .addOnFailureListener{
                         toast("Uploading Failed")
@@ -326,8 +358,7 @@ class AddPromo : AppCompatActivity(),DatePickerDialog.OnDateSetListener,TimePick
 
     }
     override fun saveCategoriesBusiness(myCategoryList: ArrayList<CategoryParse>) {
-
-
+        globalCategorylist=ArrayList<CategoryParse>()
         globalCategorylist = myCategoryList
 
             Log.e(TAG, "saveCategoriesBusiness")
@@ -339,6 +370,10 @@ class AddPromo : AppCompatActivity(),DatePickerDialog.OnDateSetListener,TimePick
                     Log.e(TAG, "loop2")
                     if (myCategoryList[i].Subcategories[j].Selected) {
                         subcategoryList.add(myCategoryList[i].Subcategories[j].SubcategoryName)
+                        categoryLista.add(myCategoryList[i].categoryName)
+                        Log.e(TAG,"${myCategoryList[i].Subcategories[j].SubcategoryName} and ${myCategoryList[i].categoryName} ")
+
+
                     }
                 }
 
@@ -364,6 +399,9 @@ setAdapter(subcategoryList)
         val pLatLng = addPromoPlace.text.toString()
         val pPromoPlace = addPromoLocation.text.toString()
         val pPromoImageLink = addPromoImageLink.text.toString()
+
+
+
 Log.e(TAG,"$pName $pStore $pContact")
         val pEntity = PromoModelBusinessman("asdasd", pStore, pContact, pDescription, pPromoPlace, pName, pLatLng, pPromoImageLink,
                 GeoPoint(myGeolocation.latitude, myGeolocation.longitude), subsubTag.text.toString(), 0, 0, 0, 0
@@ -381,15 +419,28 @@ Log.e(TAG,"$pName $pStore $pContact")
         )
         pEntity.approved = false
         pEntity.posterBy = LoginActivityBusinessman.userBusinessManUsername
-        pushtoDataBsae(pStore)
+        pEntity.categoryLista = categoryLista
+        var randomUIID = UUID.randomUUID().toString()
+        pushtoDataBsae(randomUIID)
 
-        mFirebaseFirestore.collection("PromoDetails").document(pStore).set(pEntity)
+
+        var myDemoTarget= DemoTarget(randomUIID,AgeTarget(businessmancheckboxyoung.isChecked,businessmancheckboxteenager.isChecked,
+                businessmancheckboxadult.isChecked), GenderTarget(businessmancheckboxmale.isChecked,businessmancheckboxfemale.isChecked),
+                StatusTarget(businessmancheckboxsingle.isChecked, businessmancheckboxinarelationship.isChecked))
+
+        Log.e("leroygwapo",myDemoTarget.toString())
+
+        mFirebaseFirestore.collection("PromoDemography").document(randomUIID).set(myDemoTarget)
+
+        mFirebaseFirestore.collection("PromoDetails").document(randomUIID).set(pEntity)
         toast("Success")
         addPromoProgressBar.visibility = View.INVISIBLE
         Log.d("HyperDeals",myGeolocation.latitude.toString()+myGeolocation.longitude.toString())
         addGeofence(pStore,myGeolocation)
 
+
     }
+
 
 
 
@@ -450,15 +501,20 @@ Log.e(TAG,"$pName $pStore $pContact")
     fun setAdapter(myList:ArrayList<String>){
         var  selectedSubAdapter = SelectedSubcategoryAdapterBusiness(this,subcategoryList)
 
-Log.e(TAG,"${myList.size}")
+Log.e("Suway2","${subcategoryList.size} ${subcategoryList.toString()}")
 
+        globalCustomSubcategory = subcategoryList
 
         var myStagger = StaggeredGridLayoutManager(3, LinearLayoutManager.HORIZONTAL)
         recyclerViewSub.layoutManager = myStagger
             recyclerViewSub.adapter = selectedSubAdapter
     }
-    fun pushtoDataBsae(PromoStore:String){
-var myArrayStringSub = myStoreCategories
+
+    fun pushtoDataBsae(randomUIID:String){
+
+        Log.e("Suway2", globalCustomSubcategory.size.toString() + globalCustomSubcategory.toString())
+
+        var myArrayStringSub = globalCustomSubcategory
 
         Log.e(TAG,"time for push ${myArrayStringSub.size}")
         for(k in 0 until myArrayStringSub.size){
@@ -466,13 +522,22 @@ var myArrayStringSub = myStoreCategories
                 val Subcategory = HashMap<String, Any>()
                 Subcategory["SubcategoryName"] = myArrayStringSub[k]
 
-
-                mFirebaseFirestore.collection("PromoCategories").document(PromoStore).collection("Subcategories")
+                mFirebaseFirestore.collection("PromoCategories").document(randomUIID).collection("Subcategories")
                         .document().set(Subcategory)
                         .addOnSuccessListener { Log.e(TAG, "DocumentSnapshot successfully written!") }
                         .addOnFailureListener { e -> Log.e(TAG, "Error  writing document", e) }
             }
 
+        }
+        Log.e(TAG,"categoryLista size ${categoryLista.size}" )
+        for (w in 0 until categoryLista.size){
+            val Category = HashMap<String, Any>()
+            Category["CategoryName"] = myArrayStringSub[w]
+
+            mFirebaseFirestore.collection("PromoCategories").document(randomUIID).collection("Categories")
+                    .document().set(Category)
+                    .addOnSuccessListener { Log.e(TAG, "DocumentSnapshot successfully written!") }
+                    .addOnFailureListener { e -> Log.e(TAG, "Error  writing document", e) }
         }
     }
     private fun showDialog() {
@@ -523,6 +588,7 @@ var myArrayStringSub = myStoreCategories
 
         myStoreCategories = ArrayList<String>()
         myStoreCategories = myStore.storeCategories
+        globalCustomSubcategory = myStore.storeCategories
         var  selectedSubAdapter = SelectedSubcategoryAdapterBusiness(this,myStore.storeCategories)
         var myStagger = StaggeredGridLayoutManager(3, LinearLayoutManager.HORIZONTAL)
         recyclerViewSub.layoutManager = myStagger

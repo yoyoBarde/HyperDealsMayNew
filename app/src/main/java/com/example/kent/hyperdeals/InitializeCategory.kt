@@ -5,6 +5,7 @@ import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.v7.widget.GridLayoutManager
 import android.util.Log
+import com.example.kent.hyperdeals.FragmentActivities.FragmentCategory
 import com.example.kent.hyperdeals.MyAdapters.CategoryAdapter
 import com.example.kent.hyperdeals.Model.*
 
@@ -30,15 +31,15 @@ class InitializeCategory : AppCompatActivity() {
 
         button2.setOnClickListener {
 
-
+            LoginActivity.userUIDS = RegistrationActivity.globalRegisteredUsername
             parseTOunparse2( myAdapter.categoryList)
-            startActivity(Intent(this,MainActivity::class.java))
+            startActivity(Intent(this,FragmentCategory::class.java))
 
         }
         button_set.setOnClickListener{
 
             parseTOunparse( myAdapter.categoryList)
-        startActivity(Intent(this,MainActivity::class.java))
+        startActivity(Intent(this,FragmentCategory::class.java))
         }
 
 

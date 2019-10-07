@@ -1,64 +1,19 @@
 package com.example.kent.hyperdeals.FragmentActivities
 
-import android.app.Dialog
-import android.content.Intent
-import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
-import android.net.Uri
+
 import android.os.Bundle
 import android.support.v4.app.Fragment
-import android.support.v7.widget.DefaultItemAnimator
-import android.support.v7.widget.LinearLayoutManager
 import android.util.Log
-import android.util.SparseBooleanArray
-import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.example.kent.hyperdeals.FragmentsBusiness.Business_PromoProfile
-import com.example.kent.hyperdeals.MyAdapters.PromoListAdapter
 import com.example.kent.hyperdeals.Model.PromoModel
-import com.example.kent.hyperdeals.Model.PromoModelBusinessman
 
-import com.example.kent.hyperdeals.Interface.RecyclerTouchListener
-import com.example.kent.hyperdeals.LoginActivity
-import com.example.kent.hyperdeals.Model.*
 import com.example.kent.hyperdeals.R
-import com.google.firebase.firestore.*
-import com.google.firebase.firestore.Transaction
-import com.squareup.picasso.Picasso
-import kotlinx.android.synthetic.main.dialogbox.*
-import kotlinx.android.synthetic.main.fragmentpromaplist.*
-import org.jetbrains.anko.doAsync
-import org.jetbrains.anko.support.v4.toast
-import org.jetbrains.anko.uiThread
-import java.text.SimpleDateFormat
-import java.util.*
 
 class FragmentProMapList: Fragment() {
+val TAG = "FragmentProMapList"
 
-
-
-    private var myDialog: Dialog? = null
-    var currentDate = Calendar.getInstance()
-
-    private var promolist = ArrayList<PromoModel>()
-    private var promolist1= ArrayList<PromoModelBusinessman>()
-    private var mAdapter : PromoListAdapter? = null
-    private var mSelected: SparseBooleanArray = SparseBooleanArray()
-    private var mFirebaseFirestore = FirebaseFirestore.getInstance()
-
-
-    val KEY_SENT = "sent"
-    val KEY_VIEWED= "viewed"
-    val KEY_INTERESTED = "interested"
-
-    var TAG = "Hyperdeals"
-
-    companion object {
-
-        const val KEY = "asdad"
-    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
 
@@ -67,41 +22,90 @@ class FragmentProMapList: Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        lateinit var myPromoDistanceSorted: ArrayList<PromoModel>
+        lateinit var myPromoMatchedSorted: ArrayList<PromoModel>
 
-        promolist = ArrayList()
 
-        val database = FirebaseFirestore.getInstance()
+       var percentPoints =  getCriteriaPercent()
 
-        val layoutManager = LinearLayoutManager(context)
-        recyclerViewProMapList.layoutManager = layoutManager
-        recyclerViewProMapList.itemAnimator = DefaultItemAnimator()
-        database.collection("PromoDetails").get().addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                for (DocumentSnapshot in task.result) {
-                    val upload = DocumentSnapshot.toObject(PromoModel::class.java)
-                    Log.d(TAG, DocumentSnapshot.getId() + " => " + DocumentSnapshot.getData())
-                    if (currentDate.timeInMillis <= upload.endDateCalendar.timeInMillis)
-                    {
+        for(i in 0 until 1000){
+            Log.e(TAG,"Loop ${i}")
+            if(FragmentCategory.promoDistanceSorted.size>0 && FragmentCategory.promoMatchedSorted.size>0 ){
 
-                        if(upload.approved) {
-                            promolist.add(upload)
-                        }
-                    }
-                    toast("success")
+                Log.e(TAG,"delivered ${FragmentCategory.promoDistanceSorted.size} ${FragmentCategory.promoMatchedSorted.size} ")
+                myPromoDistanceSorted=FragmentCategory.promoDistanceSorted
+                myPromoMatchedSorted =FragmentCategory.promoMatchedSorted
 
-                    mAdapter = PromoListAdapter(activity!!,mSelected, promolist)
-                    recyclerViewProMapList.adapter = mAdapter
+                setPromoPoints(percentPoints,myPromoDistanceSorted,myPromoMatchedSorted)
+                break
+            }
 
-                }
-
-            } else
-                toast("error")
         }
 
-      /*   val email: String
-        val db: FirebaseFirestore = FirebaseFirestore.getInstance()
-        var documentReference: DocumentReference = db.collection("EmailUID").document(email)
-        for ()*/
+
+    }
+    fun setPromoPoints(percentPoints:ArrayList<Double>,promoDistance: ArrayList<PromoModel>,promoMatched: ArrayList<PromoModel>){
+        for(i in 0 until percentPoints.size){
+
+            if(i<promoDistance.size){
+
+                promoDistance[i].distancePoints = percentPoints[i]
+
+            }
+            if(i<promoMatched.size){
+                if(i>0) {
+                    if (promoMatched[i].preferenceMatched == promoMatched[i - 1].preferenceMatched) {
+                        promoMatched[i].matchedPoints = promoMatched[i - 1].matchedPoints
+                    }
+                    else {
+                        promoMatched[i].matchedPoints = percentPoints[i]
+                    }
+                }
+                else {
+                    promoMatched[i].matchedPoints = percentPoints[i]
+                }
+            }
+
+try {
+    Log.e(TAG,"Loop $i ${ promoMatched[i].promoname} ${ promoMatched[i].matchedPoints} and ${promoDistance[i].promoname} got ${promoDistance[i].distancePoints} ")
+
+}
+catch(e:IndexOutOfBoundsException){
+    Log.e(TAG,"Exception $e")
+
+}
+        }
+
+
+
+    }
+    fun getCriteriaPercent():ArrayList<Double>{
+        var percentPoints = ArrayList<Double>()
+        percentPoints.add(8.1)
+        percentPoints.add(7.6)
+        percentPoints.add(7.1)
+        percentPoints.add(6.5)
+        percentPoints.add(6.1)
+        percentPoints.add(5.8)
+        percentPoints.add(5.5)
+        percentPoints.add(5.3)
+        percentPoints.add(5.0)
+        percentPoints.add(4.7)
+        percentPoints.add(4.4)
+        percentPoints.add(4.2)
+        percentPoints.add(3.9)
+        percentPoints.add(3.6)
+        percentPoints.add(3.4)
+        percentPoints.add(3.1)
+        percentPoints.add(2.8)
+        percentPoints.add(2.5)
+        percentPoints.add(2.3)
+        percentPoints.add(2.0)
+
+return percentPoints
+
+
+
     }
 
     }

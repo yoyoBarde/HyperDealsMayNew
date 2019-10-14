@@ -7,11 +7,13 @@ import android.support.v7.widget.LinearLayoutManager
 import android.util.Log
 import android.view.*
 import com.example.kent.hyperdeals.BusinessActivities.AddPromo
+import com.example.kent.hyperdeals.BusinessActivities.AddPromo.Companion.globalCustomSubcategory
 import com.example.kent.hyperdeals.BusinessActivities.AddStore
 import com.example.kent.hyperdeals.MyAdapters.CategoryAdapterBusiness
 import com.example.kent.hyperdeals.R
 import com.example.kent.hyperdeals.Model.myInterfaces
 import kotlinx.android.synthetic.main.activity_dialog_fragment_add_category_business.*
+import java.lang.Exception
 
 
 class DialogFragmentAddCategoryBusiness : DialogFragment() {
@@ -34,12 +36,31 @@ val TAG = "DialogFragment"
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
                 super.onViewCreated(view, savedInstanceState)
 
+try{
 
-        for(i in 0 until AddPromo.globalCategorylist.size){
+    for(i in 0 until AddPromo.globalCategorylist.size){
+        Log.e(TAG,"${AddPromo.globalCategorylist[i].Subcategories.size} - ${AddPromo.globalCategorylist[i].categoryName}")
+        for(k in 0 until AddPromo.globalCategorylist[i].Subcategories.size  ){
+            for(l in 0 until globalCustomSubcategory.size){
+                if(globalCustomSubcategory[l].matches(AddPromo.globalCategorylist[i].Subcategories[k].SubcategoryName.toRegex())){
+                    AddPromo.globalCategorylist[i].Subcategories[k].Selected = true
 
-     Log.e(TAG,"${AddPromo.globalCategorylist[i].Subcategories.size} - ${AddPromo.globalCategorylist[i].categoryName}")
+                }
+
+            }
+
 
         }
+
+    }
+
+}catch (e:UninitializedPropertyAccessException){
+    print(e)
+
+}
+
+
+
 
                 myAdapter = CategoryAdapterBusiness(activity!!,AddPromo.globalCategorylist)
 

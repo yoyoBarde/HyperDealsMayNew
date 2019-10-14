@@ -34,6 +34,7 @@ globalCategoryList = categoryList
         var alternateCounte = 1
 
         val myCategory = categoryList[position]
+
         mySubcatAdapter = SubcategoryAdapterBusiness(context,myCategory.Subcategories,position)
 
 
@@ -46,6 +47,19 @@ globalCategoryList = categoryList
 
 
         holder.recyclerViewHeadd
+        var subcategorySelected = false
+        for (i in 0 until myCategory.Subcategories.size){
+            if( myCategory.Subcategories[i].Selected){
+                subcategorySelected = true
+
+            }
+
+        }
+        if(subcategorySelected){
+            holder.recyclerViewHeadd.visibility = View.VISIBLE
+
+            holder.iv_minimize_maximize.setImageResource(R.mipmap.ic_arrow_down)
+        }
         holder.iv_minimize_maximize.setOnClickListener {
             alternateCounte += 1
 

@@ -8,6 +8,7 @@ import android.util.Log
 import com.example.kent.hyperdeals.FragmentActivities.FragmentCategory
 import com.example.kent.hyperdeals.MyAdapters.CategoryAdapter
 import com.example.kent.hyperdeals.Model.*
+import com.example.kent.hyperdeals.NavigationBar.DashboardActivity
 
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.firestore.FirebaseFirestore
@@ -33,20 +34,29 @@ class InitializeCategory : AppCompatActivity() {
 
             LoginActivity.userUIDS = RegistrationActivity.globalRegisteredUsername
             parseTOunparse2( myAdapter.categoryList)
-            startActivity(Intent(this,FragmentCategory::class.java))
+            setPreferedTIme()
+            startActivity(Intent(this,DashboardActivity::class.java))
 
         }
         button_set.setOnClickListener{
+            LoginActivity.userUIDS = RegistrationActivity.globalRegisteredUsername
 
             parseTOunparse( myAdapter.categoryList)
-        startActivity(Intent(this,FragmentCategory::class.java))
+            val intent = Intent(this,DashboardActivity::class.java)
+            setPreferedTIme()
+            startActivity(intent)
         }
 
 
 
     }
 
+    fun setPreferedTIme(){
 
+
+        var userPrefTIme  =   userPreferredTime(0,0,23,59,false)
+        database.collection("UserPreferredTime").document(RegistrationActivity.globalRegisteredUsername).set(userPrefTIme)
+    }
 
     fun getCategories() {
 
@@ -105,24 +115,24 @@ class InitializeCategory : AppCompatActivity() {
 
 
     fun parseTOunparse( categoryParseList : ArrayList<CategoryParse>):ArrayList<CategoryModel>{
-       var  categoryModelList = ArrayList<CategoryModel>()
+        var  categoryModelList = ArrayList<CategoryModel>()
 
         for(i in 0 until categoryParseList.size) {
             if (categoryParseList[i].SelectedAll){
-            var tempCategoryName = categoryParseList[i].categoryName
-            var tempSelectedAll = categoryParseList[i].SelectedAll
-            var tempSubcategories = ArrayList<SubcategoryModelx>()
-            var tempCategoryImage = categoryParseList[i].CategoryImage
-            for (j in 0 until categoryParseList[i].Subcategories.size) {
-                if (tempSelectedAll) {
-                    tempSubcategories.add(SubcategoryModelx(categoryParseList[i].Subcategories[j].SubcategoryName, true))
-                }
+                var tempCategoryName = categoryParseList[i].categoryName
+                var tempSelectedAll = categoryParseList[i].SelectedAll
+                var tempSubcategories = ArrayList<SubcategoryModelx>()
+                var tempCategoryImage = categoryParseList[i].CategoryImage
+                for (j in 0 until categoryParseList[i].Subcategories.size) {
+                    if (tempSelectedAll) {
+                        tempSubcategories.add(SubcategoryModelx(categoryParseList[i].Subcategories[j].SubcategoryName, true))
+                    }
 
+                }
+                var final = CategoryModel(tempCategoryName, tempSelectedAll, tempSubcategories)
+                final.CategoryImage = tempCategoryImage
+                categoryModelList.add(final)
             }
-            var final = CategoryModel(tempCategoryName, tempSelectedAll, tempSubcategories)
-            final.CategoryImage = tempCategoryImage
-            categoryModelList.add(final)
-        }
 
         }
 
@@ -141,7 +151,7 @@ class InitializeCategory : AppCompatActivity() {
 
 
 
-            return categoryModelList
+        return categoryModelList
     }
     fun parseTOunparse2( categoryParseList : ArrayList<CategoryParse>):ArrayList<CategoryModel>{
         var  categoryModelList = ArrayList<CategoryModel>()
@@ -186,12 +196,9 @@ class InitializeCategory : AppCompatActivity() {
 
 
     private fun storeDatatoFirestore(categoryModel:CategoryModel){
-doAsync {
-
-
-
-    Log.e(TAG,categoryModel.categoryName+ " save to database")
-        mFirebaseFirestore.collection("UserCategories").document(RegistrationActivity.globalRegisteredUsername).collection("Categories").document(categoryModel.categoryName).set(categoryModel)
+        doAsync {
+            Log.e(TAG,categoryModel.categoryName+ " save to database")
+            mFirebaseFirestore.collection("UserCategories").document(RegistrationActivity.globalRegisteredUsername).collection("Categories").document(categoryModel.categoryName).set(categoryModel)
 
         }
 

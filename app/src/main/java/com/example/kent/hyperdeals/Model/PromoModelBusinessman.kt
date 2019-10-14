@@ -42,7 +42,7 @@ class   PromoModelBusinessman (
         ){
         var categoryLista=ArrayList<String>()
 
-        var areaSqm:Int= 0
+        var areaSqm:Double= 0.12
         var approved:Boolean = false
         var posterBy:String = " "
 

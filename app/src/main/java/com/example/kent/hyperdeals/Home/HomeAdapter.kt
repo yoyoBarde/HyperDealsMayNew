@@ -49,7 +49,9 @@ val database = FirebaseFirestore.getInstance()
 
     holder.tvHomeText.text = promos.promoname
     holder.tvHomeStore.text = promos.promoStore
-    holder.tv_distance.text = promos.distance + " KM"
+    var distance = "${promos.distance.get(0)}${promos.distance.get(1)}${promos.distance.get(2)}${promos.distance.get(3)}"
+
+        holder.tv_distance.text = distance + " KM"
     holder.container.setOnClickListener { showDialog(position) }
 
 

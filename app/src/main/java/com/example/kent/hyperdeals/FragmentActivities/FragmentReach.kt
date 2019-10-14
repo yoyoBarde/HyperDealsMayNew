@@ -60,7 +60,6 @@ class FragmentReach : Fragment() {
         recyclerViewReach.layoutManager = layoutManager
         recyclerViewReach.itemAnimator = DefaultItemAnimator()
 
-
         database.collection("PromoDetails").get().addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 for (DocumentSnapshot in task.result) {

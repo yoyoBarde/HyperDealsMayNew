@@ -36,8 +36,38 @@ class UserPreferredTime : AppCompatActivity(), TimePickerDialog.OnTimeSetListene
                 if (document.exists()) {
 
                     var promoLikeCountParce = document.toObject(userPreferredTimeParce::class.java)
-                    uiThread {             tv_startTime.text = "${promoLikeCountParce.startTimeHour}:${promoLikeCountParce.startTimeMinutes}"
-                        tv_endTime.text = "${promoLikeCountParce.endTimeHour}:${promoLikeCountParce.endTimeMinutes}"
+                    uiThread {
+                        var amorpm = "am"
+                        var amorpmend= "pm"
+                        var subHour = promoLikeCountParce.startTimeHour.toString()
+                        var subMinute  = promoLikeCountParce.startTimeMinutes.toString()
+                        var subHourEnd = promoLikeCountParce.endTimeHour.toString()
+                        var subMinuteEnd = promoLikeCountParce.endTimeMinutes.toString()
+                        if(promoLikeCountParce.startTimeHour>=12){
+
+                                amorpm = "pm"
+                               subHour =  (promoLikeCountParce.startTimeHour - 12).toString()
+
+
+                        }
+                        if(subMinute.toString().length==1)
+                            subMinute ="0${subMinute.toString()}"
+
+
+                        if(promoLikeCountParce.endTimeHour>=12){
+
+                            amorpmend = "pm"
+                            subHourEnd =  (promoLikeCountParce.endTimeHour - 12).toString()
+
+
+                        }
+                        if(subMinuteEnd.toString().length==1)
+                            subMinuteEnd ="0${subMinuteEnd.toString()}"
+
+
+
+                        tv_startTime.text = "${subHour}:${subMinute} $amorpm"
+                        tv_endTime.text = "${subHourEnd}:${subMinuteEnd} ${amorpmend}"
 
                     switch_on.isChecked = promoLikeCountParce.enabled
                     }
@@ -46,6 +76,7 @@ class UserPreferredTime : AppCompatActivity(), TimePickerDialog.OnTimeSetListene
                     endTimeHour =  promoLikeCountParce.endTimeHour
                     endTimeMinutes = promoLikeCountParce.endTimeMinutes
                     userPrefer = promoLikeCountParce
+                    setTimePicker(promoLikeCountParce)
 
                 } else {
                     Log.e(TAG, "dont exist")
@@ -62,17 +93,6 @@ class UserPreferredTime : AppCompatActivity(), TimePickerDialog.OnTimeSetListene
             prefTimeEnabled = b
             btn_set.visibility = View.VISIBLE
         }
-        tv_startTime.setOnClickListener {
-            selected  = 1
-            var myTimepicker =  TimePickerDialog(this,this,8,0, DateFormat.is24HourFormat(this))
-            myTimepicker.show()
-        }
-        tv_endTime.setOnClickListener {
-            selected = 2
-            var myTimepicker =  TimePickerDialog(this,this,5,0,DateFormat.is24HourFormat(this))
-            myTimepicker.show()
-
-        }
 
         btn_set.setOnClickListener {
             btn_set.visibility = View.GONE
@@ -85,25 +105,69 @@ class UserPreferredTime : AppCompatActivity(), TimePickerDialog.OnTimeSetListene
         }
     }
 
+    fun setTimePicker(userPrefered:userPreferredTimeParce){
+        tv_startTime.setOnClickListener {
+            selected  = 1
+            var myTimepicker =  TimePickerDialog(this,this,userPrefered.startTimeHour,userPrefered.startTimeMinutes, DateFormat.is24HourFormat(this))
+            myTimepicker.show()
+        }
+        tv_endTime.setOnClickListener {
+            selected = 2
+            var myTimepicker =  TimePickerDialog(this,this,userPrefered.endTimeHour,userPrefered.endTimeMinutes,DateFormat.is24HourFormat(this))
+            myTimepicker.show()
+
+        }
+
+
+    }
 
     override fun onTimeSet(p0: TimePicker?, p1: Int, p2: Int) {
+        var subHour=p1.toString()
+        var subMinute=p2.toString()
+        var amorpm = "am"
         btn_set.visibility = View.VISIBLE
         if(selected==1){
+            if(p1==0)
+                p1 -1
+            if(p1>=12) {
+                amorpm = "pm"
+                p1 - 12
+
+            }
             var kk = Calendar.getInstance()
             kk.set(2019,3,27,p1,p2)
             startTimeHour = p1
             startTimeMinutes= p2
             Log.e(TAG,"${kk.time}   ${kk.timeInMillis}")
-            tv_startTime.text = "${p1}:${p2}"
+            if(p2.toString().length==1)
+                subMinute ="0${p2.toString()}"
+
+            if(p1>12)
+                subHour =(p1-12).toString()
+
+
+            tv_startTime.text = "${subHour}:${subMinute} $amorpm"
 
         }
         else if (selected==2){
+            if(p1==0)
+                p1 -1
+            if(p1>=12) {
+                amorpm = "pm"
+                p1 - 12
+
+            }
             var kk = Calendar.getInstance()
             kk.set(2019,3,27,p1,p2)
             endTimeHour = p1
             endTimeMinutes = p2
             Log.e(TAG,"${kk.time}   ${kk.timeInMillis}")
-            tv_endTime.text = "${p1}:${p2}"
+            if(p2.toString().length==1)
+                subMinute ="0${p2.toString()}"
+
+            if(p1>12)
+                subHour =(p1-12).toString()
+            tv_endTime.text = "${subHour}:${subMinute} $amorpm"
 
 
         }

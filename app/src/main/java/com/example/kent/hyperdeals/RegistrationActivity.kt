@@ -16,8 +16,7 @@ import kotlinx.android.synthetic.main.registrationactivity.*
 import java.util.HashMap
 import android.widget.RadioButton
 import android.widget.RadioGroup
-
-
+import org.jetbrains.anko.toast
 
 
 class RegistrationActivity : AppCompatActivity() {
@@ -86,9 +85,21 @@ class RegistrationActivity : AppCompatActivity() {
             var myUser =UserModel(firstname,lastname,email,password,age,userGender,userStatus)
 
 
+            var message =" "
 
             if (!email.isEmpty() && !password.isEmpty() && !lastname.isEmpty() && !firstname.isEmpty()) {
+                var Boolean = true
+                if(age.isEmpty()){
+                    Boolean = false
+                    message = "Age is empty"
+                }
+                if(!password.matches(password2.text.toString().toRegex())){
+                    Boolean = false
+                    message = "Password doesn't match"
 
+                }
+
+                if(Boolean){
 
                 mAuth!!.createUserWithEmailAndPassword(email!!, password!!)
                         .addOnCompleteListener(this) {task ->
@@ -97,7 +108,7 @@ class RegistrationActivity : AppCompatActivity() {
                             if (task.isSuccessful)
                             {
                                 var myEmailUID= EmailUID(email,mAuth.currentUser!!.uid)
-                                mDb.collection("Users").document(mAuth.currentUser!!.uid).set(myUser)
+                                mDb.collection("Users").document(myUser.Email).set(myUser)
                                 mDb.collection("EmailUID").document(myUser.Email).set(myEmailUID)
                                 val userID = mAuth!!.currentUser!!.uid
                                 val currentUserDb = mDatabaseReference!!.child(userID)
@@ -107,6 +118,7 @@ class RegistrationActivity : AppCompatActivity() {
 
                                // val intent = Intent(this,LoginActivity::class.java)
                                 globalRegisteredUsername = email
+
                                 val intent = Intent(this,InitializeCategory::class.java)
                                 startActivity(intent)
 
@@ -116,6 +128,12 @@ class RegistrationActivity : AppCompatActivity() {
                             }
                         }
             }
+                else{
+                    toast(message)
+                    Log.e(TAG,message)
+                }
+                }
+
             else {
                 Toast.makeText(this, "Enter credentials!", Toast.LENGTH_SHORT).show()
             }

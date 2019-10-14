@@ -2,6 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.kent.hyperdeals">
 
+    <uses-feature android:name="android.hardware.wifi.rtt" />
+
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
@@ -18,7 +22,19 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".CategoryHome"></activity>
+        <activity android:name=".EditCategory"></activity>
+
+        <service
+            android:name=".DismissService"
+            android:label="DismissService"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
+
+        <activity android:name=".FragmentActivities.RTT" />
+        <activity android:name=".CategoryHome" />
         <activity android:name=".NavigationOptionsActivity.UserHistory" />
         <activity android:name=".NavigationOptionsActivity.UserPreferredTime" />
         <activity android:name=".NavigationOptionsActivity.UserInterest" />
@@ -84,6 +100,9 @@
         <activity android:name=".Admin.AdminAddIncentivesInputs" />
         <activity android:name=".Admin.RewardsUser" />
         <activity android:name=".Admin.AddCategoryInput" />
+
+        <receiver android:name=".NotificationReceiver" />
+        <receiver android:name=".NotificationReceiverDismiss" />
     </application>
 
 </manifest>

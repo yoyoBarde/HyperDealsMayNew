@@ -13,6 +13,8 @@ import com.example.kent.hyperdeals.Model.SubcategoryParse
 import com.example.kent.hyperdeals.R
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.model_categories.view.*
+import org.jetbrains.anko.doAsync
+import org.jetbrains.anko.uiThread
 
 
 class CategoryHomeAdapter (var context: Context, var categoryList : ArrayList<CategoryParse>) : RecyclerView.Adapter<CategoryHomeAdapter.ViewHolder>(){
@@ -34,10 +36,14 @@ class CategoryHomeAdapter (var context: Context, var categoryList : ArrayList<Ca
         var myCategory = categoryList[position]
 
         holder.categoryNamee.text = myCategory.categoryName
-        Picasso.get()
-                .load(myCategory.CategoryImage)
-                .placeholder(R.drawable.hyperdealslogofinal)
-                .into(holder.categoryImage)
+        doAsync {
+            uiThread {
+                Picasso.get()
+                        .load(myCategory.CategoryImage)
+                        .placeholder(R.drawable.hyperdealslogofinal)
+                        .into(holder.categoryImage)
+            }
+        }
 
         holder.categoryImage.setOnClickListener {
 

@@ -51,7 +51,7 @@ class AdminApprovePromoFragment : Fragment() {
         val layoutManager = LinearLayoutManager(context)
         recyclerPendingPromo.layoutManager = layoutManager
         recyclerPendingPromo.itemAnimator = DefaultItemAnimator()
-        database.collection("PromoDetails").get().addOnCompleteListener { task ->
+        database.collection("PendingPromoDetails").get().addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 for (DocumentSnapshot in task.result) {
                     val upload = DocumentSnapshot.toObject(PromoModel::class.java)
@@ -60,7 +60,8 @@ class AdminApprovePromoFragment : Fragment() {
                     upload.promoLocation = LatLng(geoPoint.latitude, geoPoint.longitude)
                     upload.startDateCalendar.set(upload.startDateYear, upload.startDateMonth - 1, upload.startDateDay)
                     upload.endDateCalendar.set(upload.endDateYear, upload.endDateMonth - 1, upload.endDateDay)
-
+                    upload.promoID = DocumentSnapshot.id
+                    Log.e(TAG,"areaSqm ${upload.areaSqm}")
 
                     if (currentDate.timeInMillis <= upload.endDateCalendar.timeInMillis)
                     {

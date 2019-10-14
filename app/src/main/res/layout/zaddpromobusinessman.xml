@@ -27,10 +27,10 @@
                 android:id="@+id/imageView7"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
-                android:layout_marginTop="580dp"
                 android:src="@mipmap/ic_back_arrow"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:layout_editor_absoluteX="55dp" />
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -102,9 +102,9 @@
                 <EditText
                     android:id="@+id/et_storeName"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
+                    android:layout_height="wrap_content"
                     android:hint="Enter Store Name"
-                    android:visibility="gone" />
+                    />
             </LinearLayout>
 
 
@@ -119,6 +119,7 @@
                 android:layout_marginEnd="8dp"
                 android:layout_marginRight="8dp"
                 android:ems="10"
+                android:text="09452592874"
                 android:hint="Enter contact number"
                 android:inputType="number"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -209,6 +210,15 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/place_autocomplete_fragment" />
+
+            <Button
+                android:id="@+id/btnGetLocation"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Get Location"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/addPromoLocation" />
 
             <EditText
 
@@ -325,7 +335,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="1.0"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/addPromoLocation">
+                app:layout_constraintTop_toBottomOf="@+id/btnGetLocation">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -626,6 +636,7 @@
                         android:textColor="@color/black" />
 
                     <EditText
+                        android:id="@+id/et_sqm"
                         android:layout_width="wrap_content"
                         android:layout_height="50dp"
                         android:hint="approximate sqm"

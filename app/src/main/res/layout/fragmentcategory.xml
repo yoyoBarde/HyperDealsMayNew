@@ -114,6 +114,16 @@
         app:layout_constraintStart_toEndOf="@+id/textviewxxx"
         app:layout_constraintTop_toTopOf="@+id/textviewxxx" />
 
+    <ImageView
+        android:id="@+id/btnRefreshNearby"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="8dp"
+        app:srcCompat="@drawable/ic_refresh_btn"
+        app:layout_constraintBottom_toBottomOf="@+id/minimize_nearby"
+        app:layout_constraintStart_toEndOf="@+id/minimize_nearby"
+        app:layout_constraintTop_toTopOf="@+id/minimize_nearby" />
+
     <android.support.v7.widget.RecyclerView
 
         android:id="@+id/reclerView_hottest_promo"

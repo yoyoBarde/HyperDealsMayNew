@@ -27,7 +27,45 @@ interface  myInterfacesAddItem{
 }
 
 
+class UserModelParcelable():Parcelable{
+    override fun writeToParcel(dest: Parcel?, flags: Int) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
 
+    override fun describeContents(): Int {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    var FirstName:String = " "
+    var LastName:String = " "
+    var Email:String = " "
+    var Password:String = " "
+    var Age: String = " "
+    var Gender: String = " "
+    var Status: String = " "
+
+    constructor(parcel: Parcel) : this() {
+        FirstName = parcel.readString()
+        LastName = parcel.readString()
+        Email = parcel.readString()
+        Password = parcel.readString()
+        Age = parcel.readString()
+        Gender = parcel.readString()
+        Status = parcel.readString()
+    }
+
+    companion object CREATOR : Parcelable.Creator<UserModelParcelable> {
+        override fun createFromParcel(parcel: Parcel): UserModelParcelable {
+            return UserModelParcelable(parcel)
+        }
+
+        override fun newArray(size: Int): Array<UserModelParcelable?> {
+            return arrayOfNulls(size)
+        }
+    }
+
+
+}
 data class promoSubcategory(var subcategoryName:String)
 
 
@@ -224,6 +262,33 @@ class userPromoViewsParce():Parcelable{
 
 
 
+class promoCategoryParce():Parcelable{
+    var CategoryName = " "
+
+    constructor(parcel: Parcel) : this() {
+        CategoryName = parcel.readString()
+    }
+
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeString(CategoryName)
+    }
+
+    override fun describeContents(): Int {
+        return 0
+    }
+
+    companion object CREATOR : Parcelable.Creator<promoCategoryParce> {
+        override fun createFromParcel(parcel: Parcel): promoCategoryParce {
+            return promoCategoryParce(parcel)
+        }
+
+        override fun newArray(size: Int): Array<promoCategoryParce?> {
+            return arrayOfNulls(size)
+        }
+    }
+
+}
+
 
 class promoSubcategoryParce() :Parcelable{
     var SubcategoryName = " "
@@ -300,6 +365,35 @@ data class UserBusinessman(var firstname:String,
      }
  }
 
+ class AgeTargetParcelable() :Parcelable {
+     override fun writeToParcel(dest: Parcel?, flags: Int) {
+         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+     }
+
+     override fun describeContents(): Int {
+         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+     }
+
+     var young: Boolean = false
+        var teenager: Boolean = false
+        var adult: Boolean = false
+
+     constructor(parcel: Parcel) : this() {
+         young = parcel.readByte() != 0.toByte()
+         teenager = parcel.readByte() != 0.toByte()
+         adult = parcel.readByte() != 0.toByte()
+     }
+
+     companion object CREATOR : Parcelable.Creator<AgeTargetParcelable> {
+         override fun createFromParcel(parcel: Parcel): AgeTargetParcelable {
+             return AgeTargetParcelable(parcel)
+         }
+
+         override fun newArray(size: Int): Array<AgeTargetParcelable?> {
+             return arrayOfNulls(size)
+         }
+     }
+ }
 data class AgeTarget (
         var young: Boolean,
         var teenager: Boolean,
@@ -310,11 +404,68 @@ data class GenderTarget(
         var male: Boolean,
         var female : Boolean
 )
+class GenderTargetParcelable() :Parcelable{
+    override fun writeToParcel(dest: Parcel?, flags: Int) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun describeContents(): Int {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    var male: Boolean = false
+    var female : Boolean = false
+
+    constructor(parcel: Parcel) : this() {
+        male = parcel.readByte() != 0.toByte()
+        female = parcel.readByte() != 0.toByte()
+    }
+
+    companion object CREATOR : Parcelable.Creator<GenderTargetParcelable> {
+        override fun createFromParcel(parcel: Parcel): GenderTargetParcelable {
+            return GenderTargetParcelable(parcel)
+        }
+
+        override fun newArray(size: Int): Array<GenderTargetParcelable?> {
+            return arrayOfNulls(size)
+        }
+    }
+}
 
 data class StatusTarget(
         var single: Boolean,
         var inarelationshop: Boolean
 )
+
+class StatusTargetParcelable():Parcelable{
+    var single: Boolean = false
+    var inarelationshop: Boolean = false
+
+    constructor(parcel: Parcel) : this() {
+        single = parcel.readByte() != 0.toByte()
+        inarelationshop = parcel.readByte() != 0.toByte()
+    }
+
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeByte(if (single) 1 else 0)
+        parcel.writeByte(if (inarelationshop) 1 else 0)
+    }
+
+    override fun describeContents(): Int {
+        return 0
+    }
+
+    companion object CREATOR : Parcelable.Creator<StatusTargetParcelable> {
+        override fun createFromParcel(parcel: Parcel): StatusTargetParcelable {
+            return StatusTargetParcelable(parcel)
+        }
+
+        override fun newArray(size: Int): Array<StatusTargetParcelable?> {
+            return arrayOfNulls(size)
+        }
+    }
+
+}
 data class DemoTarget(var promoID:String , var myAgeTarget:AgeTarget, var myGenderTarger: GenderTarget, var myStatusTarget: StatusTarget)
 
 

@@ -1,12 +1,17 @@
 package com.example.kent.hyperdeals.BusinessActivities
 
+import android.Manifest
 import android.app.Activity
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.location.*
 import android.net.Uri
+import android.os.Build
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.support.v4.app.ActivityCompat
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.StaggeredGridLayoutManager
@@ -31,12 +36,17 @@ import com.google.firebase.firestore.GeoPoint
 import android.text.format.DateFormat;
 import android.widget.*
 import com.example.kent.hyperdeals.FragmentActivities.DialogFragmentAddCategoryBusiness
+import com.example.kent.hyperdeals.FragmentActivities.FragmentCategory
 import com.example.kent.hyperdeals.LoginActivity
 import com.example.kent.hyperdeals.LoginActivityBusinessman
 import com.example.kent.hyperdeals.Model.*
 import com.example.kent.hyperdeals.MyAdapters.CategoryAdapterBusiness
 import com.example.kent.hyperdeals.MyAdapters.SelectedSubcategoryAdapterBusiness
+import com.google.android.gms.internal.zzahn
+import com.google.android.gms.maps.model.LatLng
 import org.jetbrains.anko.doAsync
+import org.jetbrains.anko.locationManager
+import java.lang.Exception
 import java.text.SimpleDateFormat
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
@@ -50,11 +60,15 @@ class AddPromo : AppCompatActivity(),DatePickerDialog.OnDateSetListener,TimePick
         var globalCategorylist=ArrayList<CategoryParse>()
         lateinit var globalCustomSubcategory:ArrayList<String>
         lateinit var globalCustomCategory:ArrayList<String>
+        var categoryLista = ArrayList<String>()
+
     }
+    private var locationManager: LocationManager? = null
+    private var locationListener: LocationListener? = null
+
     lateinit var myStoreCategories:ArrayList<String>
     var storeList = ArrayList<StoreModel>()
     lateinit var subcategoryList:ArrayList<String>
-     var categoryLista = ArrayList<String>()
     var globalSubcategoryStringList = ArrayList<String>()
     val database = FirebaseFirestore.getInstance()
     private var mImageLink : UploadTask.TaskSnapshot?=null
@@ -96,11 +110,33 @@ class AddPromo : AppCompatActivity(),DatePickerDialog.OnDateSetListener,TimePick
     private var mStorage: FirebaseStorage?=null
     private var mStorageReference : StorageReference?=null
     private var mFirebaseFirestore = FirebaseFirestore.getInstance()
+    var initialSqm = 1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.zaddpromobusinessman)
         getStores2()
+
+        et_sqm.setText("${initialSqm}")
+         startTimeHour=8
+         startTimeMinute=0
+         endTimeHour=17
+        endTimeMinute=0
+        startTime.text = "${startTimeHour}:${startTimeMinute} am"
+        endTime.text = "5:00 pm"
+        var myCalendar = Calendar.getInstance()
+        var myStartDate = myCalendar.time
+        var  dateFormat = SimpleDateFormat("MM/dd/yyyy")
+        startDate.text = dateFormat.format(myStartDate)
+        startDateYear = myCalendar.get(Calendar.YEAR)
+         startDateMonth = myCalendar.get(Calendar.MONTH)
+         startDateDay = myCalendar.get(Calendar.DAY_OF_MONTH)
+        Log.e(TAG,"Initial start date ${startDateYear},${startDateMonth}${startDateYear}")
+
+
+
+
+
 
         newFragment = DialogFragmentAddCategoryBusiness().newInstance()
         getCategories()
@@ -112,8 +148,9 @@ class AddPromo : AppCompatActivity(),DatePickerDialog.OnDateSetListener,TimePick
 
 
 
-
-
+        imageView7.setOnClickListener { finish() }
+        btnGetLocation.setOnClickListener { getLocation()
+        }
         addPromoImage.setOnClickListener{
             val intent = Intent()
             intent.type = "image/*"
@@ -200,7 +237,7 @@ class AddPromo : AppCompatActivity(),DatePickerDialog.OnDateSetListener,TimePick
         endTime.setOnClickListener {
 
             selectedEndorStart = 4
-            var myTimepicker =  TimePickerDialog(this,this,5,0,DateFormat.is24HourFormat(this))
+            var myTimepicker =  TimePickerDialog(this,this,17,0,DateFormat.is24HourFormat(this))
             myTimepicker.show()
         }
 
@@ -213,6 +250,7 @@ class AddPromo : AppCompatActivity(),DatePickerDialog.OnDateSetListener,TimePick
         myCalendar.set(p1,p2,p3)
         var  dateFormat = SimpleDateFormat("MM/dd/yyyy")
         val myDate:Date = myCalendar.time
+
 
 
         if(selectedEndorStart==1){
@@ -251,25 +289,43 @@ class AddPromo : AppCompatActivity(),DatePickerDialog.OnDateSetListener,TimePick
 
     override fun onTimeSet(p0: TimePicker?, p1: Int, p2: Int) {
         var amorpm = "am"
-
+        var subHour =p1.toString()
+        var subMinute = p2.toString()
         if(selectedEndorStart==3){
             startTimeHour = p1
             startTimeMinute = p2
             if(p1==0)
                 p1 -1
-            if(p1>12) {
+            if(p1>=12) {
                 amorpm = "pm"
                 p1 - 12
 
             }
-            startTime.text = "$p1:$p2 $amorpm"
+            Log.e(TAG,"length ${p1.toString().length}")
+            if(p2.toString().length==1)
+             subMinute ="0${p2.toString()}"
+
+            if(p1>12)
+                subHour =(p1-12).toString()
+            startTime.text = "$subHour:$subMinute $amorpm"
 
         }
         else if (selectedEndorStart==4)
         {
+
+            if(p1>=12) {
+                amorpm = "pm"
+                p1 - 12
+
+            }
             endTimeHour = p1
             endTimeMinute = p2
-            endTime.text = "$p1:$p2 $amorpm"
+            if(p2.toString().length==1)
+             subMinute ="0${p2}"
+            if(p1>12)
+
+             subHour =(p1-12).toString()
+            endTime.text = "$subHour:$subMinute $amorpm"
         }
 
     }
@@ -294,9 +350,12 @@ class AddPromo : AppCompatActivity(),DatePickerDialog.OnDateSetListener,TimePick
         mStorageReference = mStorage!!.reference
 
         if (imageUri!=null){
+            addPromoPublish.text = " "
+            addPromoPublish.isEnabled = false
             val ref = mStorageReference!!.child("images/" + UUID.randomUUID().toString())
             ref.putFile(imageUri!!)
                     .addOnSuccessListener {
+
 
                         addPromoProgressBar.visibility = View.VISIBLE
 
@@ -318,6 +377,13 @@ class AddPromo : AppCompatActivity(),DatePickerDialog.OnDateSetListener,TimePick
                             proceed=false
 
                         }
+                        var finalSqm = et_sqm.text
+                        if(initialSqm>finalSqm.toString().toInt()){
+                            SangitString = "Area must atleast be 30 sqm"
+                            proceed=false
+
+
+                        }
                         if(startDate.text.toString().matches("M-DD-YYYY".toRegex())){
                             SangitString = "Set start date"
                             proceed=false
@@ -329,15 +395,18 @@ class AddPromo : AppCompatActivity(),DatePickerDialog.OnDateSetListener,TimePick
 
                         }
                         if(proceed) {
+
                             storeDatatoFirestore()
                             finish()
-                            addPromoProgressBar.visibility = View.INVISIBLE
+                            addPromoProgressBar.visibility = View.VISIBLE
                         }
                         else{
                             toast(SangitString)
                         }
                     }
                     .addOnFailureListener{
+                        addPromoPublish.isEnabled = true
+                        addPromoPublish.text =  "Publish Promo"
                         toast("Uploading Failed")
                     }
 
@@ -348,6 +417,11 @@ class AddPromo : AppCompatActivity(),DatePickerDialog.OnDateSetListener,TimePick
 
     }
     private fun addGeofence(key:String,location:GeoLocation){
+
+
+
+
+
         geoFire.setLocation(key,location, GeoFire.CompletionListener { key, error ->
 
             Log.d("HyperDeals",key)
@@ -360,7 +434,7 @@ class AddPromo : AppCompatActivity(),DatePickerDialog.OnDateSetListener,TimePick
     override fun saveCategoriesBusiness(myCategoryList: ArrayList<CategoryParse>) {
         globalCategorylist=ArrayList<CategoryParse>()
         globalCategorylist = myCategoryList
-
+        categoryLista = ArrayList<String>()
             Log.e(TAG, "saveCategoriesBusiness")
          subcategoryList = ArrayList<String>()
             for (i in 0 until myCategoryList.size) {
@@ -371,6 +445,7 @@ class AddPromo : AppCompatActivity(),DatePickerDialog.OnDateSetListener,TimePick
                     if (myCategoryList[i].Subcategories[j].Selected) {
                         subcategoryList.add(myCategoryList[i].Subcategories[j].SubcategoryName)
                         categoryLista.add(myCategoryList[i].categoryName)
+                        Log.e(TAG,"category lista added ${myCategoryList[i].categoryName}")
                         Log.e(TAG,"${myCategoryList[i].Subcategories[j].SubcategoryName} and ${myCategoryList[i].categoryName} ")
 
 
@@ -379,6 +454,7 @@ class AddPromo : AppCompatActivity(),DatePickerDialog.OnDateSetListener,TimePick
 
 
             }
+        Log.e(TAG,"categoryLista ${categoryLista.size} size")
             globalSubcategoryStringList = subcategoryList
             for (k in 0 until subcategoryList.size) {
 
@@ -420,6 +496,7 @@ Log.e(TAG,"$pName $pStore $pContact")
         pEntity.approved = false
         pEntity.posterBy = LoginActivityBusinessman.userBusinessManUsername
         pEntity.categoryLista = categoryLista
+        pEntity.areaSqm = et_sqm.text.toString().toDouble()
         var randomUIID = UUID.randomUUID().toString()
         pushtoDataBsae(randomUIID)
 
@@ -430,13 +507,14 @@ Log.e(TAG,"$pName $pStore $pContact")
 
         Log.e("leroygwapo",myDemoTarget.toString())
 
-        mFirebaseFirestore.collection("PromoDemography").document(randomUIID).set(myDemoTarget)
+        mFirebaseFirestore.collection("PromoDemography").document(randomUIID).collection("AgeTarget").document("AgeTarget").set(myDemoTarget.myAgeTarget)
+        mFirebaseFirestore.collection("PromoDemography").document(randomUIID).collection("GenderTarget").document("GenderTarget").set(myDemoTarget.myGenderTarger)
+        mFirebaseFirestore.collection("PromoDemography").document(randomUIID).collection("StatusTarget").document("StatusTarget").set(myDemoTarget.myStatusTarget)
 
-        mFirebaseFirestore.collection("PromoDetails").document(randomUIID).set(pEntity)
+        mFirebaseFirestore.collection("PendingPromoDetails").document(randomUIID).set(pEntity)
         toast("Success")
         addPromoProgressBar.visibility = View.INVISIBLE
         Log.d("HyperDeals",myGeolocation.latitude.toString()+myGeolocation.longitude.toString())
-        addGeofence(pStore,myGeolocation)
 
 
     }
@@ -446,6 +524,7 @@ Log.e(TAG,"$pName $pStore $pContact")
 
     fun getCategories() {
         doAsync {
+
             database.collection("Categories").get().addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     for (DocumentSnapshot in task.result) {
@@ -505,6 +584,7 @@ Log.e("Suway2","${subcategoryList.size} ${subcategoryList.toString()}")
 
         globalCustomSubcategory = subcategoryList
 
+
         var myStagger = StaggeredGridLayoutManager(3, LinearLayoutManager.HORIZONTAL)
         recyclerViewSub.layoutManager = myStagger
             recyclerViewSub.adapter = selectedSubAdapter
@@ -515,7 +595,7 @@ Log.e("Suway2","${subcategoryList.size} ${subcategoryList.toString()}")
         Log.e("Suway2", globalCustomSubcategory.size.toString() + globalCustomSubcategory.toString())
 
         var myArrayStringSub = globalCustomSubcategory
-
+        var myArrayStringSub2 = categoryLista
         Log.e(TAG,"time for push ${myArrayStringSub.size}")
         for(k in 0 until myArrayStringSub.size){
             doAsync {
@@ -531,14 +611,18 @@ Log.e("Suway2","${subcategoryList.size} ${subcategoryList.toString()}")
         }
         Log.e(TAG,"categoryLista size ${categoryLista.size}" )
         for (w in 0 until categoryLista.size){
-            val Category = HashMap<String, Any>()
-            Category["CategoryName"] = myArrayStringSub[w]
+            doAsync {
 
-            mFirebaseFirestore.collection("PromoCategories").document(randomUIID).collection("Categories")
-                    .document().set(Category)
-                    .addOnSuccessListener { Log.e(TAG, "DocumentSnapshot successfully written!") }
-                    .addOnFailureListener { e -> Log.e(TAG, "Error  writing document", e) }
-        }
+
+                val Category = HashMap<String, Any>()
+                Category["CategoryName"] = myArrayStringSub2[w]
+
+                mFirebaseFirestore.collection("PromoCategories").document(randomUIID).collection("Categories")
+                        .document().set(Category)
+                        .addOnSuccessListener { Log.e(TAG, "DocumentSnapshot successfully written Categories!") }
+                        .addOnFailureListener { e -> Log.e(TAG, "Error  writing document", e) }
+            }
+            }
     }
     private fun showDialog() {
         AddStore.Store = false
@@ -589,6 +673,7 @@ Log.e("Suway2","${subcategoryList.size} ${subcategoryList.toString()}")
         myStoreCategories = ArrayList<String>()
         myStoreCategories = myStore.storeCategories
         globalCustomSubcategory = myStore.storeCategories
+
         var  selectedSubAdapter = SelectedSubcategoryAdapterBusiness(this,myStore.storeCategories)
         var myStagger = StaggeredGridLayoutManager(3, LinearLayoutManager.HORIZONTAL)
         recyclerViewSub.layoutManager = myStagger
@@ -630,6 +715,117 @@ Log.e("Suway2","${subcategoryList.size} ${subcategoryList.toString()}")
             }
 
         }
+    }
+    fun getLocation() {
+        var callTimes = false
+        Log.e(TAG,"getLocation")
+        locationManager = this!!.getSystemService(AppCompatActivity.LOCATION_SERVICE) as LocationManager
+        locationListener = object : LocationListener {
+            override fun onLocationChanged(location: Location) {
+
+                Log.e(TAG,"Location change ${      location.latitude }  +  ${location.longitude}")
+            if(!callTimes){
+
+                val string = "${location.latitude},${location.longitude}"
+                addPromoLocation.setText(string)
+                myGeolocation = GeoLocation(location.latitude,location.longitude)
+
+                addPromoLocation.setText(getAdress(location.latitude,location.longitude))
+                callTimes= true
+
+            }
+            }
+
+            override fun onStatusChanged(provider: String, status: Int, extras: Bundle) {
+
+            }
+
+            override fun onProviderEnabled(provider: String) {
+
+            }
+
+            override fun onProviderDisabled(provider: String) {
+
+            }
+        }
+        if (Build.VERSION.SDK_INT < 23) {
+            if (ActivityCompat.checkSelfPermission(
+                            this!!.applicationContext,
+                            Manifest.permission.ACCESS_FINE_LOCATION
+                    ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                            this!!.applicationContext,
+                            Manifest.permission.ACCESS_COARSE_LOCATION
+                    ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                // TODO: Consider calling
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
+                return
+            }
+
+            locationManager!!.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0f, locationListener)
+            locationManager!!.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0f, locationListener)
+
+            // locationManager.!!requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, 0, 0f,);
+
+        } else {
+            if (ActivityCompat.checkSelfPermission(
+                            this!!.applicationContext,
+                            Manifest.permission.ACCESS_FINE_LOCATION
+                    ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                            this!!.applicationContext, Manifest.permission
+                            .ACCESS_COARSE_LOCATION
+                    ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                ActivityCompat.requestPermissions(this!!, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 1)
+                return
+            } else {
+                //       locationManager!!.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0f, locationListener)
+                // locationManager!!.requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, 0, 0, locationListener);
+                try {
+                    locationManager!!.requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, 0, 0f, locationListener)
+                    locationManager!!.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0f, locationListener)
+
+                    locationManager!!.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0f, locationListener)
+
+                }
+                catch (e: Exception){
+                    Log.e(TAG,"LOL")
+                }
+                Log.e(TAG, "this part")
+            }
+
+        }
+    }
+    fun getAdress(latitude: Double, longitude: Double):String {
+
+        val geocoder: Geocoder
+        val addresses: List<Address>
+        geocoder = Geocoder(this, Locale.getDefault())
+
+        addresses = geocoder.getFromLocation(latitude, longitude, 1) // Here 1 represent max location result to returned, by documents it recommended 1 to 5
+
+        val address = addresses[0].getAddressLine(0) // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
+        val city = addresses[0].locality
+        val state = addresses[0].adminArea
+        val country = addresses[0].countryName
+        val postalCode = addresses[0].postalCode
+        val knownName = addresses[0].featureName
+        val subLocality = addresses[0].subLocality
+        val premises = addresses[0].premises
+        val a = addresses[0].subAdminArea
+
+
+
+
+
+        Log.e(TAG,"$city \n  $state\n  $country\n  $postalCode\n  $knownName\n  $subLocality $premises $a")
+        Log.e(TAG,address)
+        return address
     }
 
 }

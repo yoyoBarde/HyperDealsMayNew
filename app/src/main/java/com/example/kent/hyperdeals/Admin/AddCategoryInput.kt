@@ -43,6 +43,8 @@ class AddCategoryInput : AppCompatActivity() {
         setContentView(R.layout.activity_add_category_input)
 
 
+
+
         val layoutManager = LinearLayoutManager(applicationContext)
         add_category_recyclerview.layoutManager = layoutManager
         add_category_recyclerview.itemAnimator = DefaultItemAnimator()

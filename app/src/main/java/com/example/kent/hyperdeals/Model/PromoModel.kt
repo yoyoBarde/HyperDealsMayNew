@@ -8,6 +8,8 @@ import java.util.*
 
 
 class PromoModel() : Parcelable {
+
+        var promoID:String = " "
         var promoimage: String = ""
         var promoname: String = ""
 
@@ -42,10 +44,11 @@ class PromoModel() : Parcelable {
 
         var relatedPromoMatched:Int = 0
         var preferenceMatched: Int = 0
+        var categories = ArrayList<String>()
         var subcategories = ArrayList<String>()
         var approved: Boolean = false
         var posterBy: String = " "
-        var areaSqm:Int = 0
+        var areaSqm:Double = 0.21
 
 
         var startDateCalendar = Calendar.getInstance()
@@ -83,7 +86,7 @@ class PromoModel() : Parcelable {
                 endTimeHour = parcel.readInt()
                 endTimeMinute = parcel.readInt()
                 preferenceMatched = parcel.readInt()
-                areaSqm = parcel.readInt()
+                areaSqm = parcel.readDouble()
                 approved = parcel.readByte() != 0.toByte()
                 posterBy = parcel.readString()
         }
@@ -117,7 +120,7 @@ class PromoModel() : Parcelable {
                 parcel.writeInt(endTimeHour)
                 parcel.writeInt(endTimeMinute)
                 parcel.writeInt(preferenceMatched)
-               parcel.writeInt(areaSqm)
+               parcel.writeDouble(areaSqm)
 
                 parcel.writeByte(if (approved) 1 else 0)
                 parcel.writeString(posterBy)

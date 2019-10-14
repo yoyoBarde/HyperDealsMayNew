@@ -1,12 +1,17 @@
 package com.example.kent.hyperdeals.BusinessActivities
 
+import android.Manifest
 import android.app.Activity
 import android.app.TimePickerDialog
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.location.*
 import android.net.Uri
 import android.net.wifi.WifiConfiguration
+import android.os.Build
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.support.v4.app.ActivityCompat
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.StaggeredGridLayoutManager
@@ -34,8 +39,12 @@ import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_add_store.*
+import kotlinx.android.synthetic.main.activity_add_store.btnGetLocation
+import kotlinx.android.synthetic.main.activity_add_store.btn_add_categoru
+import kotlinx.android.synthetic.main.zaddpromobusinessman.*
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.toast
+import java.lang.Exception
 import java.text.DateFormat
 import java.util.*
 
@@ -47,6 +56,12 @@ class AddStore : AppCompatActivity(), myInterfaces, TimePickerDialog.OnTimeSetLi
         var Store = false
 
     }
+
+    private var locationManager: LocationManager? = null
+    private var locationListener: LocationListener? = null
+
+
+
     var database = FirebaseFirestore.getInstance()
 
     var selectedEndorStart =0
@@ -72,7 +87,7 @@ class AddStore : AppCompatActivity(), myInterfaces, TimePickerDialog.OnTimeSetLi
 
         val autocompleteFragment = fragmentManager.findFragmentById(R.id.place_autocomplete_fragment) as PlaceAutocompleteFragment
 
-        autocompleteFragment.setOnPlaceSelectedListener(object : PlaceSelectionListener {
+        autocompleteFragment.setOnPlaceSelectedListener(object : PlaceSelectionListener {   
             override fun onError(p0: Status?) {
             toast("Error!")
             }
@@ -114,7 +129,7 @@ class AddStore : AppCompatActivity(), myInterfaces, TimePickerDialog.OnTimeSetLi
             myTimepicker.show()
         }
 
-
+        btnGetLocation.setOnClickListener { getLocation() }
     }
     override fun onTimeSet(p0: TimePicker?, p1: Int, p2: Int) {
         var amorpm = "am"
@@ -288,6 +303,108 @@ class AddStore : AppCompatActivity(), myInterfaces, TimePickerDialog.OnTimeSetLi
         }
 
     }
+    fun getLocation() {
+        var callTimes = false
+        Log.e(TAG,"getLocation")
+        locationManager = this!!.getSystemService(AppCompatActivity.LOCATION_SERVICE) as LocationManager
+        locationListener = object : LocationListener {
+            override fun onLocationChanged(location: Location) {
+
+                Log.e(TAG,"Location change ${      location.latitude }  +  ${location.longitude}")
+                if(!callTimes){
+
+                    val string = "${location.latitude},${location.longitude}"
+                    et_store_address.setText(string)
+                    myGeolocation = GeoLocation(location.latitude,location.longitude)
+
+                    et_store_address.setText( getAdress(location.latitude,location.longitude))
+                    callTimes= true
+                }
+            }
+
+            override fun onStatusChanged(provider: String, status: Int, extras: Bundle) {
+
+            }
+
+            override fun onProviderEnabled(provider: String) {
+
+            }
+
+            override fun onProviderDisabled(provider: String) {
+
+            }
+        }
+        if (Build.VERSION.SDK_INT < 23) {
+            if (ActivityCompat.checkSelfPermission(
+                            this!!.applicationContext,
+                            Manifest.permission.ACCESS_FINE_LOCATION
+                    ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                            this!!.applicationContext,
+                            Manifest.permission.ACCESS_COARSE_LOCATION
+                    ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                // TODO: Consider calling
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
+                return
+            }
+            locationManager!!.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0f, locationListener)
+            locationManager!!.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0f, locationListener)
+
+            // locationManager.!!requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, 0, 0f,);
+
+        } else {
+            if (ActivityCompat.checkSelfPermission(
+                            this!!.applicationContext,
+                            Manifest.permission.ACCESS_FINE_LOCATION
+                    ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                            this!!.applicationContext, Manifest.permission
+                            .ACCESS_COARSE_LOCATION
+                    ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                ActivityCompat.requestPermissions(this!!, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 1)
+                return
+            } else {
+                //       locationManager!!.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0f, locationListener)
+                // locationManager!!.requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, 0, 0, locationListener);
+                try {
+                    locationManager!!.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0f, locationListener)
+
+                }
+                catch (e: Exception){
+                    Log.e(TAG,"LOL")
+                }
+                Log.e(TAG, "this part")
+            }
+
+        }
+    }
+    fun getAdress(latitude: Double, longitude: Double):String {
+
+        val geocoder: Geocoder
+        val addresses: List<Address>
+        geocoder = Geocoder(this, Locale.getDefault())
+
+        addresses = geocoder.getFromLocation(latitude, longitude, 1) // Here 1 represent max location result to returned, by documents it recommended 1 to 5
+
+        val address = addresses[0].getAddressLine(0) // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
+        val city = addresses[0].locality
+        val state = addresses[0].adminArea
+        val country = addresses[0].countryName
+        val postalCode = addresses[0].postalCode
+        val knownName = addresses[0].featureName
+        val subLocality = addresses[0].subLocality
+
+
+
+        Log.e(TAG,"$city \n  $state\n  $country\n  $postalCode\n  $knownName\n  $subLocality")
+        return address
+    }
+
     fun getStores2() {
         var storeList = ArrayList<StoreModel>()
         doAsync {
@@ -321,5 +438,6 @@ class AddStore : AppCompatActivity(), myInterfaces, TimePickerDialog.OnTimeSetLi
 
         }
     }
+
 
 }

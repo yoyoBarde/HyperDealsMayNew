@@ -1,11 +1,14 @@
 package com.example.kent.hyperdeals.FragmentActivities;
 
 import android.app.Application;
+import android.content.BroadcastReceiver;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Address;
 import android.location.Geocoder;
+import android.location.LocationManager;
 import android.media.Image;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -15,6 +18,7 @@ import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -65,6 +69,8 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
@@ -98,9 +104,11 @@ public class FragmentProMap extends Fragment implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener, GoogleMap.OnMarkerClickListener {
-
+    public Boolean globalFirst = true;
     public static String keyoo;
     private GoogleMap mMap;
+    private Circle mCircle;
+
     //Play Service Location
     private static final int MY_PERMISSION_REQUEST_CODE = 7192;
     private static final int PLAY_SERVICE_RESULATION_REQUEST = 300193;
@@ -109,8 +117,8 @@ public class FragmentProMap extends Fragment implements OnMapReadyCallback,
     private GoogleApiClient nGoogleApiClient;
     private Location mLastLocaiton;
     private static final int NOTIFICATION_ID_OPEN_ACTIVITY=9;
-    private static int UPDATE_INTERVAL = 5000;
-    private static int FATEST_INTERVAL = 3000;
+    private static int UPDATE_INTERVAL = 2000;
+    private static int FATEST_INTERVAL = 1000;
     private static int DISPLACEMENT = 10;
     int count = 0;
     private static final LatLngBounds LAT_LNG_BOUNDS = new LatLngBounds(new LatLng(-40,-168),new LatLng(71,136));
@@ -265,7 +273,8 @@ public class FragmentProMap extends Fragment implements OnMapReadyCallback,
         mMap = googleMap;
         Log.e(TAG,"onMapReady");
        new GetImageFromURL().execute("asd");
-        //add GeoQuery here
+displayLocation();
+//add GeoQuery here
         Log.e(TAG,"onMapReady");
         init(getActivity());
 
@@ -281,23 +290,54 @@ public class FragmentProMap extends Fragment implements OnMapReadyCallback,
         mMap.setOnMarkerClickListener(this);
 
     }
+    public void drawCircleMarker(LatLng position,double areaSqm){
+        Log.e(TAG,"markerCircle");
+        double radiusInMeters = areaSqm/2;
+        //red outline
+        int strokeColor = 0xffff0000;
+        //opaque red fill
+        int shadeColor = 0x44ff0000;
 
+
+        CircleOptions circleOptions = new CircleOptions()
+                .center(position)
+                .radius(radiusInMeters)
+                .fillColor(shadeColor)
+                .strokeColor(strokeColor)
+                .strokeWidth(2);
+        mCircle = mMap.addCircle(circleOptions);
+
+
+    }
     @Override
     public boolean onMarkerClick(Marker marker) {
         count+=1;
+        try {
+            mCircle.remove();
+        }
+        catch(Exception e){
+            Log.e(TAG,e.toString());
+
+        }
         Log.e(TAG,marker.getTitle()+ "yoyo");
-        if(count==2) {
-            for (int i = 0; i < FragmentCategory.globalPromoList.size(); i++) {
-                Log.e(TAG, marker.getTitle() + "  " + FragmentCategory.globalPromoList.get(i).getPromoname());
-                if (marker.getTitle().equals(FragmentCategory.globalPromoList.get(i).getPromoname())) {
+        int position =0 ;
+        for (int i = 0; i < FragmentCategory.globalPromoList.size(); i++) {
+            Log.e(TAG, marker.getTitle() + "  " + FragmentCategory.globalPromoList.get(i).getPromoname());
+            if (marker.getTitle().equals(FragmentCategory.globalPromoList.get(i).getPromoname())) {
+                drawCircleMarker(FragmentCategory.globalPromoList.get(i).getPromoLocation(),FragmentCategory.globalPromoList.get(i).getAreaSqm());
 
-                    Log.e(TAG, "Matched");
-                    showDialog(FragmentCategory.globalPromoList.get(i),getActivity());
+                position = i;
+                Log.e(TAG, "Matched");
 
-
-                }
 
             }
+
+
+        }
+
+        if(count==2) {
+            showDialog(FragmentCategory.globalPromoList.get(position),getActivity());
+
             count=0;
         }
         return false;
@@ -327,8 +367,8 @@ public class FragmentProMap extends Fragment implements OnMapReadyCallback,
 
         promoStore.setText(myPromoModel.getPromoStore());
         promoname.setText(myPromoModel.getPromoname());
-        promoDistance.setText(String.valueOf(df.format(CalculationByDistance(new LatLng(userGeo.latitude,userGeo.longitude),myPromoModel.getPromoLocation()))));
-
+        String distanceFinal =df.format(Double.valueOf(myPromoModel.getDistance()));
+        promoDistance.setText(distanceFinal);
         AlertDialog b = dialogBuilder.create();
 
         container.setOnClickListener(new View.OnClickListener() {
@@ -405,10 +445,9 @@ public class FragmentProMap extends Fragment implements OnMapReadyCallback,
                             if (task.isSuccessful()) {
                                 for (DocumentSnapshot document : task.getResult()) {
                                     Boolean aprroved = document.getBoolean("approved");
-                                    if(!aprroved) {
+//                                    if(!aprroved) {
                                         String Url = document.getString("promoImageLink");
                                         GetImageFromURL2 myImageUrl = new GetImageFromURL2();
-
                                         GeoPoint mygeo = document.getGeoPoint("promoGeo");
                                         LatLng PromoGeo = new LatLng(mygeo.getLatitude(), mygeo.getLongitude());
                                         String PromoName = document.getString("promoname");
@@ -416,7 +455,7 @@ public class FragmentProMap extends Fragment implements OnMapReadyCallback,
                                         myImageUrl.PromoGeo = PromoGeo;
                                         myImageUrl.PromoName = PromoName;
                                         myImageUrl.execute(Url);
-                                    }
+                                 //   }
                                 }
                             } else {
                                 Log.d(TAG, "Error getting documents: ", task.getException());
@@ -477,7 +516,7 @@ public class FragmentProMap extends Fragment implements OnMapReadyCallback,
                     if (checkPlayService()) {
                         createLocationRequest();
                         buildGoogleApiClient();
-                        displayLocation();
+displayLocation();
                     }
                 }
                 break;
@@ -496,33 +535,52 @@ public class FragmentProMap extends Fragment implements OnMapReadyCallback,
             if (checkPlayService()) {
                 buildGoogleApiClient();
                 createLocationRequest();
-                displayLocation();
+displayLocation();
             }
         }
     }
+    public  class disPlayLocationAsync extends AsyncTask<String,Void,String> {
+        @Override
+        protected String doInBackground(String... strings) {
+            displayLocation();
+            return "success";
+        }
 
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+        }
+    }
     private void displayLocation() {
         if (ActivityCompat.checkSelfPermission(this.getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
                 ActivityCompat.checkSelfPermission(this.getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
         }
+
 
         mLastLocaiton = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         if (mLastLocaiton != null) {
             final double latitude = mLastLocaiton.getLatitude();
             final double longitude = mLastLocaiton.getLongitude();
             userGeo = new GeoLocation(latitude,longitude);
-
-            // geoFire.setLocation("Chowking02Promo", new GeoLocation(10.232721,123.768191), new GeoFire.CompletionListener() {
-            //       @Override
-            //  public void onComplete(String key, DatabaseError error) {
             if (mCurrent != null)
                 mCurrent.remove();
-            mCurrent = mMap.addMarker(new MarkerOptions()
-                    .position(new LatLng(latitude, longitude))
-                    .title("You"));
-            LatLng coordinate = new LatLng(latitude, longitude);
-            CameraUpdate yourLocation = CameraUpdateFactory.newLatLngZoom(coordinate, 12);
-            mMap.animateCamera(yourLocation);
+            runOnUiThread(new Runnable() {
+                public void run() {
+                    mCurrent = mMap.addMarker(new MarkerOptions()
+                            .position(new LatLng(latitude, longitude))
+                            .title("You"));
+                    Log.e(TAG,"Marker");
+                }
+            });
+
+                LatLng coordinate = new LatLng(latitude, longitude);
+
+            if(globalFirst) {
+                CameraUpdate yourLocation = CameraUpdateFactory.newLatLngZoom(coordinate, 12);
+                mMap.animateCamera(yourLocation);
+                globalFirst = false;
+            }
+//
 //                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(latitude, latitude), 12.0f));
             //   }
             //  });
@@ -533,13 +591,91 @@ public class FragmentProMap extends Fragment implements OnMapReadyCallback,
             Log.d(TAG, "Can not get your location.");
         }
     }
+//    private void getLocation() {
+//                LocationManager locationManager = null;
+//        LocationListener locationListener = null;
+//        Log.e(TAG,"getLocation");
+//        locationManager = getActivity().getSystemService(AppCompatActivity.LOCATION_SERVICE) (LocationManager)
+//        locationManager = this!!.getSystemService(AppCompatActivity.LOCATION_SERVICE) as LocationManager
+//        locationListener = object : LocationListener {
+//            override fun onLocationChanged(location: Location) {
+//
+//
+//            }
+//
+//            override fun onStatusChanged(provider: String, status: Int, extras: Bundle) {
+//
+//            }
+//
+//            override fun onProviderEnabled(provider: String) {
+//
+//            }
+//
+//            override fun onProviderDisabled(provider: String) {
+//
+//            }
+//        }
+//        if (Build.VERSION.SDK_INT < 23) {
+//            if (ActivityCompat.checkSelfPermission(
+//                    this!!.applicationContext,
+//                    Manifest.permission.ACCESS_FINE_LOCATION
+//                    ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+//                    this!!.applicationContext,
+//                    Manifest.permission.ACCESS_COARSE_LOCATION
+//                    ) != PackageManager.PERMISSION_GRANTED
+//            ) {
+//                // TODO: Consider calling
+//                //    ActivityCompat#requestPermissions
+//                // here to request the missing permissions, and then overriding
+//                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+//                //                                          int[] grantResults)
+//                // to handle the case where the user grants the permission. See the documentation
+//                // for ActivityCompat#requestPermissions for more details.
+//                return
+//            }
+//
+//            locationManager!!.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0f, locationListener)
+//            locationManager!!.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0f, locationListener)
+//
+//            // locationManager.!!requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, 0, 0f,);
+//
+//        } else {
+//            if (ActivityCompat.checkSelfPermission(
+//                    this!!.applicationContext,
+//                    Manifest.permission.ACCESS_FINE_LOCATION
+//                    ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+//                    this!!.applicationContext, Manifest.permission
+//                    .ACCESS_COARSE_LOCATION
+//                    ) != PackageManager.PERMISSION_GRANTED
+//            ) {
+//                ActivityCompat.requestPermissions(this!!, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 1)
+//                return
+//            } else {
+//                //       locationManager!!.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0f, locationListener)
+//                // locationManager!!.requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, 0, 0, locationListener);
+//                try {
+//                    locationManager!!.requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, 0, 0f, locationListener)
+//                    locationManager!!.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0f, locationListener)
+//
+//                    locationManager!!.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0f, locationListener)
+//
+//                }
+//                catch (e: Exception){
+//                    Log.e(TAG,"LOL")
+//                }
+//                Log.e(TAG, "this part")
+//            }
+//
+//        }
+//    }
 
     private void createLocationRequest() {
         mLocationRequest = new LocationRequest();
         mLocationRequest.setInterval(UPDATE_INTERVAL);
         mLocationRequest.setFastestInterval(FATEST_INTERVAL);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        mLocationRequest.setSmallestDisplacement(DISPLACEMENT);
+//        mLocationRequest.setSmallestDisplacement(DISPLACEMENT);
+
 
     }
 
@@ -625,7 +761,20 @@ public class FragmentProMap extends Fragment implements OnMapReadyCallback,
     @Override
     public void onLocationChanged(Location location) {
         mLastLocaiton = location;
-        //displayLocation();
+        runOnUiThread(new Runnable() {
+            public void run() {
+                 mMap.addMarker(new MarkerOptions()
+                        .position(new LatLng(mLastLocaiton.getLatitude(), mLastLocaiton.getAltitude()))
+                        .title("You"));
+                Log.e(TAG,"Marker on Location change");
+            }
+        });
+
+displayLocation();
+Log.e(TAG,"onLocationChange "+location.toString() );
+
+
+
 
     }
 

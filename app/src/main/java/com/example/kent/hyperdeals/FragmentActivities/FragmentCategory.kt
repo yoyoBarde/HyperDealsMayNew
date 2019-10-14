@@ -52,7 +52,6 @@ import kotlinx.android.synthetic.main.dialogbox.view.*
 import kotlinx.android.synthetic.main.fragmentcategory.*
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.support.v4.toast
-import org.jetbrains.anko.toast
 import org.jetbrains.anko.uiThread
 import java.lang.Exception
 import java.text.DecimalFormat
@@ -72,6 +71,7 @@ class FragmentCategory: Fragment() {
         var run = 0
 
     }
+    var callTimes = false
     var database = FirebaseFirestore.getInstance()
     var locationCount = 0
     var notifIDCounter = 102
@@ -83,6 +83,8 @@ class FragmentCategory: Fragment() {
     private var locationListener: LocationListener? = null
     private var promolist = ArrayList<PromoModel>()
     private var userCategories = ArrayList<CategoryParse>()
+
+     var userModel = ArrayList<UserModelParcelable>()
 
     lateinit var  geoFire:GeoFire
     lateinit var  ref:DatabaseReference
@@ -129,7 +131,7 @@ class FragmentCategory: Fragment() {
             globalPromoList = ArrayList<PromoModel>()
             Log.e(TAG,"promolist size ${promolist.size}")
             getUserPreferredTime()
-
+        callTimes = false
 
 
 
@@ -184,6 +186,9 @@ class FragmentCategory: Fragment() {
 
       }
   }
+        btnRefreshNearby.setOnClickListener { getNearbyPromo(userLatLng)
+        callTimes = false
+        }
 
     }
 
@@ -251,33 +256,109 @@ class FragmentCategory: Fragment() {
 
 fun getPromos(){
     Log.e(TAG,"getting Promos")
+    database.collection("Users").document(LoginActivity.userUIDS).get().addOnSuccessListener { document ->
+        if (document != null) {
+            Log.e(TAG, "DocumentSnapshot data: ${document.data}")
+
+            var userDemography = document.toObject(UserModelParcelable::class.java)
+            Log.e(TAG,"${userDemography.FirstName}")
+        } else {
+            Log.e(TAG, "No such document")
+        }
+    }
+            .addOnFailureListener { exception ->
+                Log.d(TAG, "get failed with ", exception)
+            }
+
+
 
     doAsync {
         database.collection("PromoDetails").get().addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 for (DocumentSnapshot in task.result) {
+
                     var upload = DocumentSnapshot.toObject(PromoModel::class.java)
-                    Log.e(TAG, " getPromos "+DocumentSnapshot.getId() + " => " + DocumentSnapshot.getData())
                     var geoPoint = DocumentSnapshot.getGeoPoint("promoGeo")
+
+                    upload.promoID = DocumentSnapshot.getId()
                     upload.promoCategories = DocumentSnapshot.getId()
                     upload.promoLocation = LatLng(geoPoint.latitude, geoPoint.longitude)
                     upload.startDateCalendar.set(upload.startDateYear, upload.startDateMonth - 1, upload.startDateDay)
                     upload.endDateCalendar.set(upload.endDateYear, upload.endDateMonth - 1, upload.endDateDay)
-                    promolist.add(upload)
+                    Log.e(TAG,"${   upload.promoID } ${upload.promoname}")
 
-                    if (currentDate.timeInMillis <= upload.endDateCalendar.timeInMillis)
-                    {
+//                    if(upload.startDateMonth!=7){
+//                        doAsync{
+//
+//                        var deleteOrnot = database.collection("PromoDetails").document(upload.promoID).delete().isSuccessful
+//                        var deleteOrnotDemo = database.collection("PromoDemography").document(upload.promoID).delete().isSuccessful
+//                        var deleteOrnotCategories = database.collection("PromoCategories").document(upload.promoID).delete().isSuccessful
+//                        Log.e(TAG,"Document deleted or not ${deleteOrnot}   ${deleteOrnotDemo}   ${deleteOrnotCategories} ")
+//                        }
+//
+//                    }
 
-                        if(upload.approved) {
-                            promolist.add(upload)
+
+                    database.collection("PromoDemography").document(upload.promoID).collection("AgeTarget").document("AgeTarget").get().addOnSuccessListener { document ->
+                        if (document != null) {
+                            Log.e(TAG, "DocumentSnapshot data: ${document.data}")
+                            var myAgeTarget = document.toObject(AgeTargetParcelable::class.java)
+                            Log.e(TAG,myAgeTarget.toString())
+
+                        } else {
+                            Log.e(TAG, "No such document")
                         }
                     }
-                    else{
-                        if(upload.approved) {
-                            promolist.add(upload)
-                        }
+                            .addOnFailureListener { exception ->
+                                Log.d(TAG, "get failed with ", exception)
+                            }
+                    database.collection("PromoDemography").document(upload.promoID).collection("GenderTarget").document("GenderTarget").get().addOnSuccessListener { document ->
+                        if (document != null) {
 
+                            Log.e(TAG, "DocumentSnapshot data: ${document.data}")
+                            var myGenderTarget = document.toObject(GenderTargetParcelable::class.java)
+                            Log.e(TAG,myGenderTarget.toString())
+
+
+                        } else {
+                            Log.e(TAG, "No such document")
+                        }
                     }
+                            .addOnFailureListener { exception ->
+                                Log.d(TAG, "get failed with ", exception)
+                            }
+                    database.collection("PromoDemography").document(upload.promoID).collection("StatusTarget").document("StatusTarget").get().addOnSuccessListener { document ->
+                        if (document != null) {
+                            Log.e(TAG, "DocumentSnapshot data: ${document.data}")
+                            var myStatusTarget = document.toObject(StatusTargetParcelable::class.java)
+                            Log.e(TAG,myStatusTarget.toString())
+
+                        } else {
+                            Log.e(TAG, "No such document")
+                        }
+                    }
+                            .addOnFailureListener { exception ->
+                                Log.d(TAG, "get failed with ", exception)
+                            }
+
+if(upload.approved) {
+    promolist.add(upload)
+}
+
+//
+//                    if (currentDate.timeInMillis <= upload.endDateCalendar.timeInMillis)
+//                    {
+//
+//                        if(upload.approved) {
+//                            promolist.add(upload)
+//                        }
+//                    }
+//                    else{
+//                        if(upload.approved) {
+//                            promolist.add(upload)
+//                        }
+//
+//                    }
                 }
                 try {
                     getPreferenceMatched()
@@ -288,17 +369,17 @@ fun getPromos(){
                 }
 
 
-
             } else
                 toast("error")
         }
 
 
 
-    }
+
 
 
 }
+    }
 fun setHomeAdapter(){
 
     var sortTedPromo = promolist.sortedWith(compareBy {it.distance})
@@ -308,47 +389,40 @@ fun setHomeAdapter(){
         if(i<20) {
             promoDistanceSorted.add(sortTedPromo[i])
         }
-        if(sortTedPromo[i].distance.toDouble()<10.0){
+        if(sortTedPromo[i].distance.toDouble()<4.0){
             finalList.add(sortTedPromo[i])
         }
     }
     mAdapter = HomeAdapter(activity!!,mSelected, finalList)
-    my_recycler_view111.adapter = mAdapter
-    minimize_nearby.setImageResource(R.mipmap.ic_arrow_blue_down)
+    try {
+        my_recycler_view111.adapter = mAdapter
+        if(my_recycler_view111.visibility == View.VISIBLE)
+        minimize_nearby.setImageResource(R.mipmap.ic_arrow_blue_down)
+
+    }catch (e:Exception){
+        print(e)
+    }
 
 
 }
     fun getLocation() {
+
         locationCount= 0
         Log.e(TAG,"getLocation")
         locationManager = activity!!.getSystemService(AppCompatActivity.LOCATION_SERVICE) as LocationManager
         locationListener = object : LocationListener {
             override fun onLocationChanged(location: Location) {
-                Log.e(TAG,"Location change")
-                if(locationCount==0){
-                    locationCount += 1
-                userLatLng = LatLng(location.latitude, location.longitude)
-                Log.e(TAG, "Manufcaturer ${android.os.Build.MANUFACTURER}")
-                detectGeofence(GeoLocation(location.latitude, location.longitude))
-                try {
-                    for (i in 0 until promolist.size) {
+                if(locationCount<1213012) {
+                    doAsync {
+                        userLatLng = LatLng(location.latitude, location.longitude)
 
-
-                        var distanceFormatted = String.format("%.2f", CalculationByDistance(userLatLng, promolist[i].promoLocation))
-                        promolist[i].distance = distanceFormatted
+                        getNearbyPromo(userLatLng)
+                        locationCount += 1
 
 
                     }
 
-                    runOnUiThread {
 
-
-                        setHomeAdapter()
-                    }
-
-                } catch (e: Exception) {
-                    Log.e(TAG, "Exception raised $e")
-                }
             }
             }
 
@@ -382,8 +456,8 @@ fun setHomeAdapter(){
                 // for ActivityCompat#requestPermissions for more details.
                 return
             }
-            locationManager!!.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0f, locationListener)
-            locationManager!!.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0f, locationListener)
+            locationManager!!.requestLocationUpdates(LocationManager.GPS_PROVIDER, 20000, 0f, locationListener)
+            locationManager!!.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 20000, 0f, locationListener)
 
             // locationManager.!!requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, 0, 0f,);
 
@@ -396,13 +470,15 @@ fun setHomeAdapter(){
                             .ACCESS_COARSE_LOCATION
                     ) != PackageManager.PERMISSION_GRANTED
             ) {
+
                 ActivityCompat.requestPermissions(activity!!, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 1)
                 return
             } else {
                 //       locationManager!!.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0f, locationListener)
                 // locationManager!!.requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, 0, 0, locationListener);
                 try {
-                    locationManager!!.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0f, locationListener)
+                    locationManager!!.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 0f, locationListener)
+                    locationManager!!.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 5000, 0f, locationListener)
 
                 }
                 catch (e:Exception){
@@ -412,6 +488,41 @@ fun setHomeAdapter(){
             }
 
         }
+    }
+    fun getNearbyPromo(myLatlng:LatLng){
+
+
+
+
+            var myLatLng = LatLng(myLatlng.latitude, myLatlng.longitude)
+            try {
+                for (i in 0 until promolist.size) {
+
+
+                    var distanceFormatted = CalculationByDistance(myLatLng, promolist[i].promoLocation)
+                    promolist[i].distance = distanceFormatted.toString()
+
+
+                }
+
+
+
+                runOnUiThread {
+                    if(!callTimes) {
+                        setHomeAdapter()
+                        callTimes = true
+                    }
+
+                }
+
+
+            } catch (e: Exception) {
+                Log.e(TAG, "Exception raised $e")
+            }
+
+        detectGeofence(GeoLocation(myLatLng.latitude, myLatLng.longitude))
+
+
     }
 
     fun promoOnPreferredTime( myPromo:PromoModel):Boolean{
@@ -438,18 +549,15 @@ return TAG
     }
     fun detectGeofence(userGeo:GeoLocation) {
         Log.e(TAG,"detectGeofence")
+        Log.e(TAG," detect geofence lagi uy yawa  ${ userGeo}")
 
-        val geoQuery = geoFire.queryAtLocation(userGeo, 500.0)
+        val geoQuery = geoFire.queryAtLocation(userGeo, 1.0)
         geoQuery.addGeoQueryEventListener(object : GeoQueryEventListener {
             override fun onKeyEntered(key: String, location: GeoLocation) {
-        Log.e(TAG,"atay na OnkeyEntered")
-                if(!notificationList.contains(key)) {
-                    notificationList.add(key)
-                    Log.e(TAG, key)
-                    notifIDCounter += 1
 
-                    for(i in 0 until promolist.size) {
-                        if(promolist[i].promoStore.matches(key.toRegex())){
+                    for (i in 0 until promolist.size) {
+                        if (promolist[i].promoID.matches(key.toRegex())) {
+
 
                             doAsync {
                                 try {
@@ -459,66 +567,90 @@ return TAG
                                     promolist[i].promoImageBitmap = bitmap
 
                                     uiThread {
-                                        if(promolist[i].preferenceMatched!=0) {
-                                            Log.e(TAG,"preferceMatch!=0")
+                                        if (promolist[i].preferenceMatched != 0) {
+                                            Log.e(TAG, "preferceMatch!=0")
 
                                             if (promoOnPreferredTime(promolist[i])) {
-                                                Log.e(TAG,"onPreferredTime")
 
-                                                if (android.os.Build.MANUFACTURER == "Allwinner") {
-                                                    Log.e(TAG, "notification pushed ${promolist[i].promoStore}")
 
-                                                } else {
-                                                    Log.e(TAG, " else notification pushed ${promolist[i].promoStore}")
+                                                Log.e(TAG, "onPreferredTime")
+                                                    Log.e(TAG, " else notification pushed ${promolist[i].promoname} ID  ${promolist[i].promoID}")
                                                     var convertedDistance = promolist[i].distance.toDouble() * 1000
-                                                    Log.e(TAG,"Condition convertedDisntance - ${convertedDistance} and ${promolist[i].areaSqm.toDouble()}")
-                                                    if(convertedDistance<=promolist[i].areaSqm.toDouble()) {
+
+                                                    var halfDouble = promolist[i].areaSqm.toDouble() / 2
+                                                    Log.e(TAG, "Condition convertedDisntance - ${convertedDistance} and ${halfDouble}")
+
+                                                    if (convertedDistance <= halfDouble) {
+
                                                         displayNotification(key, notifIDCounter, promolist[i])
 
-                                                        var myUserHistory = userHistory(promolist[i].promoStore,currentDate.toString())
+                                                        var myUserHistory = userHistory(promolist[i].promoStore, currentDate.toString())
                                                         database.collection("UserHistory").document(LoginActivity.userUIDS).collection("Promo").document(promolist[i].promoStore).set(myUserHistory)
-                                                        Log.e(TAG+"yoyo","${promolist[i].promoname}  is notified yeah")
+                                                        Log.e(TAG + "yoyo", "${promolist[i].promoname}  is notified yeah")
                                                     }
 
-                                                }
-                                            }
-                                            else{
-                                                Log.e(TAG,"Not on preferred Time")
-                                            }
-                                            }
-                                    }
-                                    Log.e(TAG, "Ngeek")
 
-                                } catch (e: Exception) {
-                                    uiThread {
-                                        if(android.os.Build.MANUFACTURER=="Allwinner") {
-                                            Log.e(TAG,"notification pushed ${promolist[i].promoStore}")
+                                            } else {
+                                                Log.e(TAG, "Not on preferred Time")
+                                            }
+                                        }
+                                        else{
+
+                                            Log.e(TAG, "${promolist[i].promoname} not prefered by user ${promolist[i].promoID}")
 
                                         }
-                                        else {
-                                            displayNotification(key, notifIDCounter, promolist[i])
-                                        }                                    }
+                                    }
+
+                                } catch (e: Exception) {
+
+//                                    print(e)
+//                                    uiThread {
+//                                        if(android.os.Build.MANUFACTURER=="Allwinner") {
+//                                            Log.e(TAG,"notification pushed ${promolist[i].promoStore}")
+//
+//                                        }
+//                                        else {
+//                                            try {
+//                                                displayNotification(key, notifIDCounter, promolist[i])
+//
+//                                            }
+//                                            catch (e:IndexOutOfBoundsException){
+//                                                print(e)
+//                                                Log.e(TAG,"IndexOutofBounds ${e}")
+//                                            }
+//                                        }                                    }
                                     Log.e(TAG, "walakadetect")
                                 }
 
                             }
 
 
-                            Log.e(TAG,"matched "+key)
+
+                        }
+                        else{
+
 
                         }
                     }
 
-                }
+
 
 
             }
 
-            override fun onKeyExited(key: String) {}
+            override fun onKeyExited(key: String) {
+              //  Log.e(TAG,"atay na onkey exited")
 
-            override fun onKeyMoved(key: String, location: GeoLocation) {}
+            }
+
+            override fun onKeyMoved(key: String, location: GeoLocation) {
+              //  Log.e(TAG,"atay na onkey moved")
+
+            }
 
             override fun onGeoQueryReady() {
+               // Log.e(TAG,"atay na onkey ready")
+
 
             }
 
@@ -549,56 +681,6 @@ return TAG
         Log.i("Radius Value", "" + valueResult + "   KM  " + kmInDec
                 + " Meter   " + meterInDec)
         return Radius * c
-    }
-    fun displayNotification(Channel: String, notificationID: Int,myPromoModel:PromoModel) {
-        var rand =  Random()
-        var n = rand.nextInt(1000)
-        var NotifcationID2 = Channel.length + n
-        Log.e("Notification test", "Succeed")
-
-        var resultIntent = Intent(activity!!, Business_PromoProfile::class.java)
-
-        var actionIntent = Intent(activity!!,NotificationReceiver::class.java)
-        val actionPendingIntent: PendingIntent = PendingIntent.getActivity(activity!!, NotifcationID2, actionIntent
-                .putExtra("key",Channel)
-                .putExtra("object",myPromoModel)
-                .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT),0)
-
-
-        val normal_layout = RemoteViews(activity!!.packageName, R.layout.notification_fence_normal)
-        val expanded_layout = RemoteViews(activity!!.packageName, R.layout.notification_fence_expanded)
-
-        normal_layout.setTextViewText(R.id.tv_notifstore,myPromoModel.promoStore+" is having a promo")
-        expanded_layout.setTextViewText(R.id.tv_notifstore2,myPromoModel.promoStore+" is having a promo")
-        expanded_layout.setTextViewText(R.id.tv_notif_description,myPromoModel.promodescription)
-        val resultPendingIntent = PendingIntent.getActivity(activity!!, NotifcationID2, resultIntent
-                .putExtra("key", Channel)
-                .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT),0)
-        try {
-
-            expanded_layout.setImageViewBitmap(R.id.iv_notifpromoimage, myPromoModel.promoImageBitmap)
-        }
-        catch (e:Exception){
-
-            print(e)
-        }
-        createNotificationChannel(Channel)
-
-        val builder = NotificationCompat.Builder(activity!!, Channel)
-        builder.setSmallIcon(R.drawable.hyperdealslogofinal)
-        builder.priority = NotificationCompat.PRIORITY_DEFAULT
-        builder.setStyle(NotificationCompat.DecoratedCustomViewStyle())
-        builder.setCustomContentView(normal_layout)
-        builder.setCustomBigContentView(expanded_layout)
-        builder.setContentIntent(resultPendingIntent)
-        builder.color = Color.BLUE
-        builder.setOnlyAlertOnce(true)
-        builder.addAction(R.drawable.hyperdealslogofinal,"Interested",actionPendingIntent)
-        builder.addAction(R.drawable.hyperdealslogofinal,"Dismiss",actionPendingIntent)
-        builder.setAutoCancel(true)
-        val notificationManagerCompat = NotificationManagerCompat.from(activity!!)
-        notificationManagerCompat.notify(NotifcationID2, builder.build())
-
     }
     @SuppressLint("NewApi")
     internal fun createNotificationChannel(Channel: String) {
@@ -687,7 +769,7 @@ Log.e(TAG,"Mana jud")
                     getUserCategories()
 
                 } else {
-                    Log.e(TAG, "dont exist")
+                    Log.e(TAG, "dont exist userPreferredTime")
                 }
 
             }
@@ -732,6 +814,28 @@ Log.e(TAG,"Mana jud")
                                }
                            }
                }
+
+               database.collection("PromoCategories").document(promolist[i].promoCategories).collection("Categories").get().addOnCompleteListener { task ->
+                   if (task.isSuccessful) {
+                       for (DocumentSnapshot in task.result) {
+                           var category = DocumentSnapshot.toObject(promoCategoryParce::class.java)
+                           if (!promolist[i].categories.contains(category.CategoryName)) {
+                               promolist[i].categories.add(category.CategoryName)
+                               Log.e(TAG, "${promolist[i].promoStore} - ${category.CategoryName}")
+                           }
+
+                       }
+                       count += 1
+                       Log.e(TAG, "promoCategory size ${promolist[i].promoStore} - ${promolist[i].subcategories.size} index $count equals ${promolist.size}")
+                       if (count == promolist.size) {
+                           getPreferenceNoMached()
+                       }
+
+                   }
+               }
+
+
+
     database.collection("PromoCategories").document(promolist[i].promoCategories).collection("Subcategories").get().addOnCompleteListener { task ->
         if (task.isSuccessful) {
             for (DocumentSnapshot in task.result) {
@@ -747,6 +851,12 @@ Log.e(TAG,"Mana jud")
             }
 
         }
+
+
+
+
+
+
     }
 
 
@@ -780,8 +890,79 @@ Log.e(TAG,"Mana jud")
 
         }
     }
+fun repushPromoDetails(randomUIID:String,pEntity:PromoModelBusinessman){
+
+
+    database.collection("PromoDetails").document(randomUIID).set(pEntity)
+    toast("Success")
+}
+    fun displayNotification(Channel: String, notificationID: Int,myPromoModel:PromoModel)   {
+
+        if (!notificationList.contains(Channel)) {
+            notificationList.add(Channel)
+            Log.e(TAG,Channel)
+            notifIDCounter += 1
+
+            var rand = Random()
+            var n = rand.nextInt(1000)
+            var NotifcationID2 = Channel.length + n
+            Log.e("Notification test", "Succeed")
+
+            var resultIntent = Intent(activity!!, Business_PromoProfile::class.java)
+            val pendingResultIntent: PendingIntent = PendingIntent.getActivity(activity!!, NotifcationID2,resultIntent,PendingIntent.FLAG_UPDATE_CURRENT)
+            resultIntent.putExtra("object",myPromoModel)
+
+            resultIntent.putExtra("notificationID",NotifcationID2)
+
+            var actionIntent = Intent(activity!!, NotificationReceiver::class.java)
+            val actionPendingIntent: PendingIntent = PendingIntent.getBroadcast(activity!!, NotifcationID2,actionIntent,PendingIntent.FLAG_UPDATE_CURRENT)
+            actionIntent.putExtra("message",myPromoModel)
+            actionIntent.putExtra("notificationID",NotifcationID2)
+            var actionIntent1 = Intent(activity!!, NotificationReceiverDismiss::class.java)
+            val actionPendingIntent1: PendingIntent = PendingIntent.getBroadcast(activity!!, NotifcationID2,actionIntent,PendingIntent.FLAG_UPDATE_CURRENT)
+
+            actionIntent1.putExtra("message",myPromoModel)
+            actionIntent.putExtra("notificationID",NotifcationID2)
+
+
+
+            val normal_layout = RemoteViews(activity!!.packageName, R.layout.notification_fence_normal)
+            val expanded_layout = RemoteViews(activity!!.packageName, R.layout.notification_fence_expanded)
+
+            normal_layout.setTextViewText(R.id.tv_notifstore, myPromoModel.promoStore + " is having a promo")
+            expanded_layout.setTextViewText(R.id.tv_notifstore2, myPromoModel.promoStore + " is having a promo")
+            expanded_layout.setTextViewText(R.id.tv_notif_description, myPromoModel.promodescription)
+
+            try {
+
+                expanded_layout.setImageViewBitmap(R.id.iv_notifpromoimage, myPromoModel.promoImageBitmap)
+            } catch (e: Exception) {
+
+                print(e)
+            }
+            createNotificationChannel(Channel)
+
+            val builder = NotificationCompat.Builder(activity!!, Channel)
+            builder.setSmallIcon(R.drawable.hyperdealslogofinal)
+            builder.priority = NotificationCompat.PRIORITY_DEFAULT
+            builder.setStyle(NotificationCompat.DecoratedCustomViewStyle())
+            builder.setCustomContentView(normal_layout)
+            builder.setCustomBigContentView(expanded_layout)
+            builder.setContentIntent(pendingResultIntent)
+            builder.setAutoCancel(true)
+            builder.color = Color.BLUE
+            builder.setOnlyAlertOnce(true)
+            builder.addAction(R.drawable.hyperdealslogofinal, "Interested", actionPendingIntent)
+            builder.addAction(R.drawable.hyperdealslogofinal, "Dismiss", actionPendingIntent1)
+
+            val notificationManagerCompat = NotificationManagerCompat.from(activity!!)
+            notificationManagerCompat.notify(NotifcationID2, builder.build())
+
+        }
+    }
 
 }
+
 
 
 

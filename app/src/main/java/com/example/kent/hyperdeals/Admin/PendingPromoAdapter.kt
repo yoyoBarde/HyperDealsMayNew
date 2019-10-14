@@ -3,27 +3,33 @@ package com.example.kent.hyperdeals.Admin
 
 import android.app.AlertDialog
 import android.content.Context
+import android.icu.text.DecimalFormat
+import android.os.Build
+import android.support.annotation.RequiresApi
 import android.support.v7.widget.RecyclerView
 import android.util.Log
 import android.util.SparseBooleanArray
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.EditText
-import android.widget.ImageView
-import android.widget.TextView
+import android.widget.*
 import com.example.kent.hyperdeals.Model.*
 import com.example.kent.hyperdeals.R
+import com.firebase.geofire.GeoFire
+import com.firebase.geofire.GeoLocation
+import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.GeoPoint
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.layout_pending_promo.view.*
+import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.layoutInflater
+import org.jetbrains.anko.uiThread
 import java.util.*
+import kotlin.math.sqrt
 
 
-class PendingPromoAdapter(val context:Context , private val promolist : ArrayList<PromoModel>) : RecyclerView.Adapter<PendingPromoAdapter.ViewHolder>(){
+class PendingPromoAdapter   (val context:Context , private val promolist : ArrayList<PromoModel>) : RecyclerView.Adapter<PendingPromoAdapter.ViewHolder>(){
     companion object {
         lateinit  var promoProfile: PromoModel
     }
@@ -37,6 +43,7 @@ class PendingPromoAdapter(val context:Context , private val promolist : ArrayLis
 
     override fun getItemCount(): Int  = promolist.size
 
+    @RequiresApi(Build.VERSION_CODES.N)
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
 
 
@@ -56,7 +63,7 @@ class PendingPromoAdapter(val context:Context , private val promolist : ArrayLis
         holder.tvPromoContact.text = promos.promoContactNumber
         holder.tvPromoStore.text = promos.promoStore
 
-        holder.tvView.setOnClickListener {  showDialog(promos)}
+        holder.tvView.setOnClickListener {  showDialog(promos,position)}
 
 
     }
@@ -77,7 +84,8 @@ class PendingPromoAdapter(val context:Context , private val promolist : ArrayLis
 
         val container = view.PromoContainer!!
     }
-    fun showDialog(myPromo:PromoModel) {
+    @RequiresApi(Build.VERSION_CODES.N)
+    fun showDialog(myPromo:PromoModel, position:Int) {
 
         val dialogBuilder = AlertDialog.Builder(context)
         val inflater = context.layoutInflater
@@ -92,7 +100,21 @@ class PendingPromoAdapter(val context:Context , private val promolist : ArrayLis
         val promoPic = dialogView.findViewById(R.id.ivPromoPic) as ImageView
 
 
+
+
+
+        etRadius.setText(100.toString())
         tvArea.text = myPromo.areaSqm.toString()
+
+        val area = myPromo.areaSqm.toDouble()
+        Log.e(TAG,"$area + ${area*.25}")
+        val areaIncremented = area + (area*.25)
+        Log.e(TAG, "$areaIncremented areaIncremented")
+        val pi = 3.14159265359
+        var diameter = 2* sqrt(areaIncremented/pi)
+        val dec = DecimalFormat("#.##")
+        val finalDiameter = dec.format(diameter)
+        etRadius.setText(finalDiameter.toString())
         promoName.text = myPromo.promoname
         storeName.text = myPromo.promoStore
         Picasso.get()
@@ -112,34 +134,62 @@ class PendingPromoAdapter(val context:Context , private val promolist : ArrayLis
         b.setCancelable(true)
 
         aprrove.setOnClickListener {
-            var myPromotoDB = PromoModelBusinessman(myPromo.promoimage,myPromo.promoStore,myPromo.promoContactNumber,myPromo.promodescription,myPromo.promoPlace,myPromo.promoname,myPromo.promoLatLng
-                    ,myPromo.promoImageLink, GeoPoint(myPromo.promoLocation.latitude,myPromo.promoLocation.longitude),
-                    "asd",0,0,0,0,
-                    myPromo.startDateYear,
-                    myPromo.startDateMonth,
-                    myPromo.startDateDay,
-                    myPromo.endDateYear,
-                    myPromo.endDateMonth,
-                    myPromo.endDateDay,
-                    myPromo.startTimeHour,
-                    myPromo.startTimeMinute,
-                    myPromo.endTimeHour ,
-                    myPromo.endTimeMinute
-            )
-            myPromotoDB.posterBy = myPromo.posterBy
-            myPromotoDB.approved = true
-            myPromotoDB.areaSqm = etRadius.text.toString().toInt()
-
-
-            database.collection("PromoDetails").document(myPromo.promoStore).set(myPromotoDB).addOnSuccessListener {
-
-                Log.e(TAG,"Success rewriting")
+            if(etRadius.text.toString().matches("".toRegex()))
+                Toast.makeText(context,"radius must be filled ",Toast.LENGTH_SHORT).show()
+else{
+            if(etRadius.text.toString().toDouble()<1){
+            Toast.makeText(context,"radius must be atleast 1 km",Toast.LENGTH_SHORT).show()
+            }
+            else {
                 b.dismiss()
 
+                var myPromotoDB = PromoModelBusinessman(myPromo.promoimage, myPromo.promoStore, myPromo.promoContactNumber, myPromo.promodescription, myPromo.promoPlace, myPromo.promoname, myPromo.promoLatLng
+                        , myPromo.promoImageLink, GeoPoint(myPromo.promoLocation.latitude, myPromo.promoLocation.longitude),
+                        "asd", 0, 0, 0, 0,
+                        myPromo.startDateYear,
+                        myPromo.startDateMonth,
+                        myPromo.startDateDay,
+                        myPromo.endDateYear,
+                        myPromo.endDateMonth,
+                        myPromo.endDateDay,
+                        myPromo.startTimeHour,
+                        myPromo.startTimeMinute,
+                        myPromo.endTimeHour,
+                        myPromo.endTimeMinute
+                )
+                myPromotoDB.posterBy = myPromo.posterBy
+                myPromotoDB.approved = true
+                myPromotoDB.areaSqm = etRadius.text.toString().toDouble()
+
+                doAsync {
+                    database.collection("PromoDetails").document(myPromo.promoID).set(myPromotoDB).addOnSuccessListener {
+                        addGeofence(myPromo.promoID,GeoLocation(myPromo.promoLocation.latitude,myPromo.promoLocation.longitude))
+
+
+
+                        try {
+                            promolist.removeAt(position)
+                        } catch (e: IndexOutOfBoundsException) {
+                            print(e)
+                        }
+                        uiThread {
+                            notifyItemRemoved(position)
+                            notifyDataSetChanged()
+                        }
+                        Log.e(TAG, "Success rewriting")
+                    }
+
+                   var deleteornot =  database.collection("PendingPromoDetails").document(myPromo.promoID).delete().isSuccessful
+                    Log.e(TAG,"delete Pending Promo $deleteornot")
+                }
+            }
             }
 
         }
         discard.setOnClickListener {
+            promolist.removeAt(position)
+            notifyItemRemoved(position)
+            notifyDataSetChanged()
 
 
             b.dismiss()
@@ -157,6 +207,21 @@ class PendingPromoAdapter(val context:Context , private val promolist : ArrayLis
 
 
 
+    private fun addGeofence(key:String,location: GeoLocation){
 
+
+        var ref= FirebaseDatabase.getInstance().getReference("Geofences")
+        var geoFire: GeoFire=GeoFire(ref)
+
+
+        geoFire.setLocation(key,location, GeoFire.CompletionListener { key, error ->
+
+            Log.e(TAG,key)
+
+
+        })
+
+
+    }
 
 }

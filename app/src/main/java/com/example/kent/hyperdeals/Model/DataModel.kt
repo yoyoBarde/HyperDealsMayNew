@@ -624,6 +624,76 @@ class userHistoryParce():Parcelable{
 
 
 }
+data class UserCategoriesPreferences(
+        var CategoryName:String,
+        var viewCount:Int
+
+)
+
+data class UserSubcategoriesPreferences(
+        var subCategoryName:String,
+        var viewCount:Int
+
+)
+class UserSubcategoriesPreferencesParcelable():Parcelable{
+
+    var subCategoryName:String = ""
+    var viewCount:Int = 0
+
+    constructor(parcel: Parcel) : this() {
+        subCategoryName = parcel.readString()
+        viewCount = parcel.readInt()
+    }
+
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeString(subCategoryName)
+        parcel.writeInt(viewCount)
+    }
+
+    override fun describeContents(): Int {
+        return 0
+    }
+
+    companion object CREATOR : Parcelable.Creator<UserSubcategoriesPreferencesParcelable> {
+        override fun createFromParcel(parcel: Parcel): UserSubcategoriesPreferencesParcelable {
+            return UserSubcategoriesPreferencesParcelable(parcel)
+        }
+
+        override fun newArray(size: Int): Array<UserSubcategoriesPreferencesParcelable?> {
+            return arrayOfNulls(size)
+        }
+    }
+
+}
+class UserCategoriesPreferencesParcelabl() :Parcelable{
+    var CategoryName:String = " "
+    var viewCount:Int = 0
+
+    constructor(parcel: Parcel) : this() {
+        CategoryName = parcel.readString()
+        viewCount = parcel.readInt()
+    }
+
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeString(CategoryName)
+        parcel.writeInt(viewCount)
+    }
+
+    override fun describeContents(): Int {
+        return 0
+    }
+
+    companion object CREATOR : Parcelable.Creator<UserCategoriesPreferencesParcelabl> {
+        override fun createFromParcel(parcel: Parcel): UserCategoriesPreferencesParcelabl {
+            return UserCategoriesPreferencesParcelabl(parcel)
+        }
+
+        override fun newArray(size: Int): Array<UserCategoriesPreferencesParcelabl?> {
+            return arrayOfNulls(size)
+        }
+    }
+
+}
 
 
 

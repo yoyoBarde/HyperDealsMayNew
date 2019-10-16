@@ -125,13 +125,12 @@ class FragmentCategory: Fragment() {
         swipe.setOnRefreshListener {
             promoDistanceSorted =  ArrayList<PromoModel>()
             promoMatchedSorted = ArrayList<PromoModel>()
-
+            callTimes = false
             swipe.isRefreshing = true
             promolist = ArrayList<PromoModel>()
             globalPromoList = ArrayList<PromoModel>()
             Log.e(TAG,"promolist size ${promolist.size}")
             getUserPreferredTime()
-        callTimes = false
 
 
 
@@ -186,7 +185,8 @@ class FragmentCategory: Fragment() {
 
       }
   }
-        btnRefreshNearby.setOnClickListener { getNearbyPromo(userLatLng)
+        btnRefreshNearby.setOnClickListener {
+            `getNearbyPromo(userLatLng)
         callTimes = false
         }
 
@@ -825,11 +825,9 @@ Log.e(TAG,"Mana jud")
                            }
 
                        }
-                       count += 1
+
                        Log.e(TAG, "promoCategory size ${promolist[i].promoStore} - ${promolist[i].subcategories.size} index $count equals ${promolist.size}")
-                       if (count == promolist.size) {
-                           getPreferenceNoMached()
-                       }
+
 
                    }
                }
@@ -844,6 +842,7 @@ Log.e(TAG,"Mana jud")
                 Log.e(TAG, "${promolist[i].promoStore} - ${subcategory.SubcategoryName}")
 
             }
+
             count+=1
             Log.e(TAG, "promosubCategory size ${promolist[i].promoStore} - ${promolist[i].subcategories.size} index $count equals ${promolist.size}")
             if(count==promolist.size){

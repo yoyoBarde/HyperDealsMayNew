@@ -54,9 +54,11 @@ class PromoModel() : Parcelable {
         var startDateCalendar = Calendar.getInstance()
         var endDateCalendar =Calendar.getInstance()
         var hottestPoints = 0
-
+        var distancematchedPoints = 0.0
         var distancePoints:Double = 0.0
         var matchedPoints:Double= 0.0
+        var categoryPoints:Double = 0.0
+        var subcategoryPonts:Double = 0.0
 
         constructor(parcel: Parcel) : this() {
                 promoCategories = parcel.readString()

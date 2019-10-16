@@ -13,9 +13,9 @@ import android.view.View
 import android.view.ViewGroup
 import com.example.kent.hyperdeals.Model.CategoryParse
 import com.example.kent.hyperdeals.Model.SubcategoryParse
-import com.example.kent.hyperdeals.MyAdapters.PreferenceChangeAdapter
 import com.example.kent.hyperdeals.MyAdapters.PreferenceChangeAdapterAdmin
 import com.example.kent.hyperdeals.R
+
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.android.synthetic.main.admin_add_category.*
 import org.jetbrains.anko.doAsync

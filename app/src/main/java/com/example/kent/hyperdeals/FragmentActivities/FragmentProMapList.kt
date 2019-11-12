@@ -29,8 +29,11 @@ import kotlin.collections.ArrayList
 
 class FragmentProMapList: Fragment() {
 val TAG = "FragmentProMapList"
-val distancePoints =3000
-val matchedPoints =5000
+    val distancePoints = 0.10 //1500
+    val matchedPoints = 0.15 //2250
+    val subcategoryViewPoints = 0.25 //3750
+    val categoryViewPoints = 0.20 //3000
+val totalPoints = 15000
     var database = FirebaseFirestore.getInstance()
  var userViewedCategoryParceList = ArrayList<UserCategoriesPreferencesParcelabl>()
  var userViewedSubcategoryParceList = ArrayList<UserSubcategoriesPreferencesParcelable>()
@@ -47,7 +50,7 @@ val matchedPoints =5000
         lateinit var myPromoMatchedSorted: ArrayList<PromoModel>
         userViewedCategoryParceList = ArrayList<UserCategoriesPreferencesParcelabl>()
         userViewedSubcategoryParceList = ArrayList<UserSubcategoriesPreferencesParcelable>()
-        var percentPoints =  getCriteriaPercent()
+        var percentPoints    =  getCriteriaPercent()
 
         tvClearPreference.setOnClickListener {
 
@@ -89,26 +92,26 @@ val matchedPoints =5000
 
             if(i<promoDistance.size){
 
-                promoDistance[i].distancePoints = percentPoints[i]*distancePoints
+                promoDistance[i].distancePoints = percentPoints[i]*(distancePoints*totalPoints)
 
             }
             if(i<promoMatched.size){
                 if(i>0) {
                     if (promoMatched[i].preferenceMatched == promoMatched[i - 1].preferenceMatched) {
-                        promoMatched[i].matchedPoints = promoMatched[i - 1].matchedPoints *matchedPoints
+                        promoMatched[i].matchedPoints =  percentPoints[i]*(promoMatched[i - 1].matchedPoints*totalPoints)
                     }
                     else {
-                        promoMatched[i].matchedPoints = percentPoints[i]*matchedPoints
+                        promoMatched[i].matchedPoints = percentPoints[i]*(matchedPoints*totalPoints)
                     }
                 }
                 else {
-                    promoMatched[i].matchedPoints = percentPoints[i]*matchedPoints
+                    promoMatched[i].matchedPoints = percentPoints[i]*(matchedPoints*totalPoints)
                 }
             }
 
 
 try {
-    Log.e(TAG,"Loop $i ${ promoMatched[i].promoname} ${ promoMatched[i].matchedPoints} and ${promoDistance[i].promoname} got ${promoDistance[i].distancePoints} ")
+    Log.e(TAG,"Loop $i  ${ promoMatched[i].matchedPoints} and ${promoDistance[i].promoname} got ${promoDistance[i].distancePoints} ")
 
 
 }
@@ -116,6 +119,7 @@ catch(e:IndexOutOfBoundsException){
     Log.e(TAG,"Exception $e")
 
 }
+
         }
 
         getUserViewedPreference(promoDistance,promoMatched)
@@ -247,40 +251,191 @@ database.collection("UserViewedPreferences").document(LoginActivity.userUIDS).co
             }
         sortFinalRecommendedList()
         }
+    fun setPercentMatchedPoints(){
+        var sortedDescmyPromoList = myPromolist.sortedWith(compareByDescending {it.categoryPoints})
+
+        var percentPoints = getCriteriaPercent()
+        for(i in 0 until sortedDescmyPromoList.size ){
+            if(i>0&&i<sortedDescmyPromoList.size) {
+                if (sortedDescmyPromoList[i].categoryPoints == sortedDescmyPromoList[i - 1].categoryPoints) {
+                    sortedDescmyPromoList[i].categoryPoints = sortedDescmyPromoList[i - 1].categoryPoints *(categoryViewPoints*totalPoints)
+                }
+                else {
+                    try {
+                        sortedDescmyPromoList[i].categoryPoints = percentPoints[i]*(categoryViewPoints*totalPoints)
+
+                    }
+                    catch (e:IndexOutOfBoundsException){
+                        print(e)
+                    }
+                }
+            }
+            else {
+                sortedDescmyPromoList[i].categoryPoints = percentPoints[i]*(categoryViewPoints*totalPoints)
+            }
+
+        }
+
+        for(j in 0 until sortedDescmyPromoList.size){
+
+            for(k in 0 until myPromolist.size){
+                if(sortedDescmyPromoList[j].promoID.matches(myPromolist[k].promoID.toRegex())){
+                    myPromolist[k].categoryPoints = sortedDescmyPromoList[j].categoryPoints
+                }
+            }
+        }
+    }
+    fun setPercentDistancePoints(){
+        var sortedDescmyPromoList = myPromolist.sortedWith(compareByDescending {it.categoryPoints})
+
+        var percentPoints = getCriteriaPercent()
+        for(i in 0 until sortedDescmyPromoList.size ){
+            if(i>0&&i<sortedDescmyPromoList.size) {
+                if (sortedDescmyPromoList[i].categoryPoints == sortedDescmyPromoList[i - 1].categoryPoints) {
+                    sortedDescmyPromoList[i].categoryPoints = sortedDescmyPromoList[i - 1].categoryPoints *(categoryViewPoints*totalPoints)
+                }
+                else {
+                    try {
+                        sortedDescmyPromoList[i].categoryPoints = percentPoints[i]*(categoryViewPoints*totalPoints)
+
+                    }
+                    catch (e:IndexOutOfBoundsException){
+                        print(e)
+                    }
+                }
+            }
+            else {
+                sortedDescmyPromoList[i].categoryPoints = percentPoints[i]*(categoryViewPoints*totalPoints)
+            }
+
+        }
+
+        for(j in 0 until sortedDescmyPromoList.size){
+
+            for(k in 0 until myPromolist.size){
+                if(sortedDescmyPromoList[j].promoID.matches(myPromolist[k].promoID.toRegex())){
+                    myPromolist[k].categoryPoints = sortedDescmyPromoList[j].categoryPoints
+                }
+            }
+        }
+
+    }
+   fun setPercentCategoryPoints(){
+       var sortedDescmyPromoList = myPromolist.sortedWith(compareByDescending {it.categoryPoints})
+
+       var percentPoints = getCriteriaPercent()
+       for(i in 0 until sortedDescmyPromoList.size ){
+           if(i>0&&i<sortedDescmyPromoList.size) {
+               if (sortedDescmyPromoList[i].categoryPoints == sortedDescmyPromoList[i - 1].categoryPoints) {
+                   sortedDescmyPromoList[i].categoryPoints = sortedDescmyPromoList[i - 1].categoryPoints *(categoryViewPoints*totalPoints)
+               }
+               else {
+                   try {
+                       sortedDescmyPromoList[i].categoryPoints = percentPoints[i]*(categoryViewPoints*totalPoints)
+
+                   }
+                   catch (e:IndexOutOfBoundsException){
+                       print(e)
+                   }
+               }
+           }
+           else {
+               sortedDescmyPromoList[i].categoryPoints = percentPoints[i]*(categoryViewPoints*totalPoints)
+           }
+
+       }
+
+       for(j in 0 until sortedDescmyPromoList.size){
+
+           for(k in 0 until myPromolist.size){
+               if(sortedDescmyPromoList[j].promoID.matches(myPromolist[k].promoID.toRegex())){
+                   myPromolist[k].categoryPoints = sortedDescmyPromoList[j].categoryPoints
+               }
+           }
+       }
+    }
+fun setPercentSubcategoryPoints(){
+  var sortedDescmyPromoList = myPromolist.sortedWith(compareByDescending {it.subcategoryPonts})
+
+    var percentPoints = getCriteriaPercent()
+    for(i in 0 until sortedDescmyPromoList.size ){
+        if(i>0&&i<sortedDescmyPromoList.size) {
+            if (sortedDescmyPromoList[i].subcategoryPonts == sortedDescmyPromoList[i - 1].subcategoryPonts) {
+                sortedDescmyPromoList[i].subcategoryPonts = sortedDescmyPromoList[i - 1].subcategoryPonts *(subcategoryViewPoints*totalPoints)
+            }
+            else {
+                try {
+                    sortedDescmyPromoList[i].subcategoryPonts = percentPoints[i]*(subcategoryViewPoints*totalPoints)
+
+                }
+                catch (e:IndexOutOfBoundsException){
+                    print(e)
+                }
+            }
+        }
+        else {
+            sortedDescmyPromoList[i].subcategoryPonts = percentPoints[i]*(subcategoryViewPoints*totalPoints)
+        }
+
+    }
+
+    for(j in 0 until sortedDescmyPromoList.size){
+
+        for(k in 0 until myPromolist.size){
+            if(sortedDescmyPromoList[j].promoID.matches(myPromolist[k].promoID.toRegex())){
+                myPromolist[k].subcategoryPonts = sortedDescmyPromoList[j].subcategoryPonts
+            }
+        }
+    }
+}
 
     fun sortFinalRecommendedList(){
 
-        var sortedList = myPromolist.sortedWith(compareByDescending<PromoModel>{it.subcategoryPonts}.thenByDescending { it.categoryPoints  }.thenByDescending {it.distancematchedPoints})
+        setPercentCategoryPoints()
+        setPercentSubcategoryPoints()
+
+
+        for(i in 0 until myPromolist.size){
+
+            myPromolist[i].totalPoints =  myPromolist[i].distancePoints + myPromolist[i].matchedPoints + myPromolist[i].categoryPoints + myPromolist[i].subcategoryPonts
+        }
+
+        var finalsortedList = myPromolist.sortedWith(compareByDescending {it.totalPoints})
+
+
+
+//        var sortedList = myPromolist.sortedWith(compareByDescending<PromoModel>{it.subcategoryPonts}.thenByDescending { it.categoryPoints  }.thenByDescending {it.distancematchedPoints})
         var sortedRecycler2List = ArrayList<PromoModel>()
         var sortedRecycler3List = ArrayList<PromoModel>()
 
+
         //  val sortedList = myPromolist.sortedWith(compareBy({ it.subcategoryPonts }, { it.categoryPoints },{it.distancematchedPoints} ))
-        for(i in 0 until sortedList.size){
-            Log.e(TAG,"Recommendation Ranked ${i+1} ${sortedList[i].promoname} ${sortedList[i].subcategoryPonts} ${sortedList[i].categoryPoints} ${sortedList[i].distancematchedPoints}")
+        for(i in 0 until finalsortedList.size){
+            Log.e(TAG,"Recommendation Ranked ${i+1} ${finalsortedList[i].promoname} ${finalsortedList[i].totalPoints} ${finalsortedList[i].subcategoryPonts} ${finalsortedList[i].categoryPoints} ${finalsortedList[i].distancePoints} ${finalsortedList[i].matchedPoints} ")
 
 
             if(i==0){
 
                 Picasso.get()
-                        .load(sortedList[i].promoImageLink)
+                        .load(finalsortedList[i].promoImageLink)
                         .placeholder(R.drawable.hyperdealslogofinal)
                         .into(PromoImage)
 
-                PromoStore.setText(sortedList[i].promoStore)
-                PromoTitle.setText(sortedList[i].promoname)
-                PromoDescription.setText(sortedList[i].promodescription)
-                PromoPlace.setText(sortedList[i].promoPlace)
-                PromoConctact.setText(sortedList[i].promoContactNumber)
+                PromoStore.setText(finalsortedList[i].promoStore)
+                PromoTitle.setText(finalsortedList[i].promoname)
+                PromoDescription.setText(finalsortedList[i].promodescription)
+                PromoPlace.setText(finalsortedList[i].promoPlace)
+                PromoConctact.setText(finalsortedList[i].promoContactNumber)
 
             }
             else{
                if(i<3) {
-                   sortedRecycler2List.add(sortedList[i])
+                   sortedRecycler2List.add(finalsortedList[i])
 
                }
                 else{
                    if(i<20){
-                       sortedRecycler3List.add(sortedList[i])
+                       sortedRecycler3List.add(finalsortedList[i])
                    }
 
 

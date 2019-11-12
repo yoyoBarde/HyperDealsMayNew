@@ -59,6 +59,7 @@ class PromoModel() : Parcelable {
         var matchedPoints:Double= 0.0
         var categoryPoints:Double = 0.0
         var subcategoryPonts:Double = 0.0
+        var totalPoints = 0.0
 
         constructor(parcel: Parcel) : this() {
                 promoCategories = parcel.readString()

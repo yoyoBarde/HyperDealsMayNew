@@ -186,7 +186,8 @@ class FragmentCategory: Fragment() {
       }
   }
         btnRefreshNearby.setOnClickListener {
-            `getNearbyPromo(userLatLng)
+
+            getNearbyPromo(userLatLng)
         callTimes = false
         }
 
